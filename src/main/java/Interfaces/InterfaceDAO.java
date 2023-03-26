@@ -5,6 +5,7 @@
 package Interfaces;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  *
@@ -16,7 +17,7 @@ public interface InterfaceDAO {
     void dropRepository(String repository);
     void pushFile(String file,String force);
     void pullFile(String file);
-    void compareFiles(String file);
+    void compareFiles(ArrayList<String> file);
     void cloneRepository(String file);
     
 }

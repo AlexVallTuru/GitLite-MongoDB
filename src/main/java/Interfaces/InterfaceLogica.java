@@ -5,6 +5,7 @@
 package Interfaces;
 
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  *
@@ -20,7 +21,7 @@ public interface InterfaceLogica {
 
     File pullFile(String file);
 
-    void compareFiles(String file);
+    void compareFiles(ArrayList<String> file);
     
     void cloneRepository(String file);
     

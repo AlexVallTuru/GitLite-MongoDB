@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import org.bson.Document;
 
 /**
@@ -17,7 +19,6 @@ import org.bson.Document;
  */
 public class Utils {
 
-  
     public static String getAbsolutePath(File file) {
         Path path = file.toPath().toAbsolutePath();
 
@@ -40,11 +41,31 @@ public class Utils {
         return doc;
 
     }
-    
-    public  static String generateRepositoryName(File file){
+
+    public static String generateRepositoryName(File file) {
         String path = file.toString().substring(3).replace("\\", "_");
         return path;
-        
+
     }
 
+    public static List<String> separarParametros(String input) {
+        List<String> parametros = new ArrayList<>();
+        String[] partes = input.split(":");
+        for (String parte : partes) {
+            parte = parte.trim();
+            if (!parte.isEmpty()) {
+                parametros.add(parte);
+            }
+        }
+        return parametros;
+    }
+
+    public static boolean containsDetails(ArrayList<String> list) {
+        for (String s : list) {
+            if (s.contains("-d")) {
+                return true;
+            }
+        }
+        return false;
+    }
 }

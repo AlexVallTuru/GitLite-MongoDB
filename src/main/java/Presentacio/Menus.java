@@ -6,9 +6,12 @@ package Presentacio;
 
 import Logica.DocumentsLogica;
 import Singleton.MongoConnection;
+import static Utils.Utils.separarParametros;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 /**
@@ -85,13 +88,11 @@ public class Menus {
     }
 
     public static void menuCompare() {
-        System.out.println("");
         Scanner in = new Scanner(System.in);
         System.out.println("Indicar ruta: ");
-        String ruta = in.nextLine();
-        System.out.println("Indicar ruta: ");
-        String force = in.nextLine();
-        logica.pushFile(ruta, force);
+        String input = in.nextLine();
+        List<String> partes = separarParametros(input);
+        logica.compareFiles((ArrayList) partes);
     }
 
     public static void menuClone() {
@@ -109,6 +110,40 @@ public class Menus {
         System.out.println("6. Volver al menú principal");
         System.out.println("Selecciona una opción: ");
         return in.nextInt();
+    }
+
+    public static void menuCreateAyuda() {
+        System.out.println("""
+        WORK IN PROGRESS                   """);
+    }
+
+    public static void menuDropAyuda() {
+        System.out.println("""
+              WORK IN PROGRESS             """);
+
+    }
+
+    public static void menuPushAyuda() {
+        System.out.println("""
+              WORK IN PROGRESS             """);
+
+    }
+
+    public static void menuPullAyuda() {
+        System.out.println("""
+                WORK IN PROGRESS           """);
+
+    }
+
+    public static void menuCompareAyuda() {
+        System.out.println("""
+                 WORK IN PROGRESS          """);
+
+    }
+
+    public static void menuCloneAyuda() {
+        System.out.println("""
+                WORK IN PROGRESS           """);
 
     }
 }

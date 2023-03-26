@@ -7,6 +7,7 @@ package Logica;
 import DAO.DocumentsDAO;
 import Interfaces.InterfaceLogica;
 import java.io.File;
+import java.util.ArrayList;
 
 /**
  *
@@ -55,7 +56,7 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void compareFiles(String file) {
+    public void compareFiles(ArrayList file) {
         try {
             dao.compareFiles(file);
         } catch (Exception e) {

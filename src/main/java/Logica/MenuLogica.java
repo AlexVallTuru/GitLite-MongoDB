@@ -39,17 +39,17 @@ public class MenuLogica {
         try {
             switch (option) {
                 case 1 ->
-                    Menus.menuCreate();
+                    Menus.menuCreateAyuda();
                 case 2 ->
-                    Menus.menuDrop();
+                    Menus.menuDropAyuda();
                 case 3 ->
-                    Menus.menuPush();
+                    Menus.menuPushAyuda();
                 case 4 ->
-                    Menus.menuCompare();
+                    Menus.menuCompareAyuda();
                 case 5 ->
-                    Menus.menuClone();
+                    Menus.menuCloneAyuda();
                 case 6 ->
-                    Menus.menuAyuda();
+                    Menus.menuPrincipal();
             }
 
         } catch (Exception e) {
