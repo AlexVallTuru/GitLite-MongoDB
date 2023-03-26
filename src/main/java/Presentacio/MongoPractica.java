@@ -10,7 +10,7 @@ import Logica.MenuLogica;
 
 /**
  *
- * @author carlo
+ * @author di carlo
  */
 public class MongoPractica {
     MenuLogica menuLogica = new MenuLogica();
@@ -18,7 +18,7 @@ public class MongoPractica {
 
     public static void main(String[] args) {
        int opc = 0;
-       while(opc != 6){
+       while(opc != 7){
            opc=Menus.menuPrincipal();
            MenuLogica.getOption(opc);
        }

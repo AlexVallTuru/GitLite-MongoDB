@@ -37,7 +37,8 @@ public class Menus {
                          3. PUSH
                          4. COMPARE
                          5. CLONE
-                         6. SALIR
+                         6. AYUDA
+                         7. SALIR
                          """);
             return in.nextInt();
 
@@ -75,7 +76,7 @@ public class Menus {
         String ruta = in.nextLine();
         System.out.println("Indicar ruta: ");
         String force = in.nextLine();
-        logica.pushFile(ruta,force);
+        logica.pushFile(ruta, force);
 
     }
 
@@ -84,11 +85,30 @@ public class Menus {
     }
 
     public static void menuCompare() {
-
+        System.out.println("");
+        Scanner in = new Scanner(System.in);
+        System.out.println("Indicar ruta: ");
+        String ruta = in.nextLine();
+        System.out.println("Indicar ruta: ");
+        String force = in.nextLine();
+        logica.pushFile(ruta, force);
     }
 
     public static void menuClone() {
 
     }
 
+    public static int menuAyuda() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("|| MENU DE AYUDA ||");
+        System.out.println("1. Documentación de la opción CREATE");
+        System.out.println("2. Documentación de la opción DROP");
+        System.out.println("3. Documentación de la opción PUSH");
+        System.out.println("4. Documentación de la opción COMPARE");
+        System.out.println("5. Documentación de la opción CLONE");
+        System.out.println("6. Volver al menú principal");
+        System.out.println("Selecciona una opción: ");
+        return in.nextInt();
+
+    }
 }

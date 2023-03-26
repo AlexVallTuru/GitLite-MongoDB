@@ -25,7 +25,8 @@ public class MenuLogica {
                     Menus.menuCompare();
                 case 5 ->
                     Menus.menuClone();
-
+                case 6 ->
+                    getOptionAyuda(Menus.menuAyuda());
             }
 
         } catch (Exception e) {
@@ -34,4 +35,26 @@ public class MenuLogica {
 
     }
 
+    public static void getOptionAyuda(int option) {
+        try {
+            switch (option) {
+                case 1 ->
+                    Menus.menuCreate();
+                case 2 ->
+                    Menus.menuDrop();
+                case 3 ->
+                    Menus.menuPush();
+                case 4 ->
+                    Menus.menuCompare();
+                case 5 ->
+                    Menus.menuClone();
+                case 6 ->
+                    Menus.menuAyuda();
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
 }
