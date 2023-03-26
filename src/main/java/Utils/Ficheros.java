@@ -11,9 +11,12 @@ import com.mongodb.client.model.Filters;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
 import java.sql.Date;
 import org.bson.Document;
 
@@ -64,7 +67,71 @@ public class Ficheros {
         System.out.println(c.getDate("modificacio"));
         System.out.println(d.equals(c.getDate("modificacio")));
         
-        
+  
     }
     
+    public static void compareLines(){
+        String line;
+        String line1 = null;
+
+        try {
+            File documento;
+            File documento1;
+            documento = new File("C:\\Users\\Alex\\Desktop\\RF05.txt");
+            documento1 = new File("C:\\Users\\Alex\\Desktop\\RF05 - copia.txt");
+            FileReader lector = new FileReader(documento);
+            BufferedReader lectura = new BufferedReader(lector);
+
+            //Documento 2
+            FileReader lector1 = new FileReader(documento1);
+            BufferedReader lectura1 = new BufferedReader(lector1);
+
+            int contadorDeLineas = 1; // Empezamos en la línea 1
+            System.out.println("-------------------- Comparando los archivos -------------------------");
+            while ((line = lectura.readLine()) != null) {
+                line1 = lectura1.readLine();
+                contadorDeLineas++;
+                if (!line.equals(line1) ) {
+                    System.out.println("Linea " + contadorDeLineas + " diferente");
+                }else{
+                    System.out.println("Linea" + contadorDeLineas + " igual");
+                }
+            }
+            System.err.println("----------------- No quedan mas lineas a analizar -----------------------\n");
+        } catch (Exception exception) {
+            exception.printStackTrace(System.out);
+        }
+    }   
+    
+    public static String obtenerMD5ComoString(String nombreArchivo) throws Exception {
+        // Convertir el arreglo de bytes a cadena
+        byte[] b = obtenerChecksum(nombreArchivo);
+        StringBuilder resultado = new StringBuilder();
+
+        for (byte unByte : b) {
+            resultado.append(Integer.toString((unByte & 0xff) + 0x100, 16).substring(1));
+        }
+        return resultado.toString();
+    }
+    
+    public static byte[] obtenerChecksum(String nombreArchivo) throws Exception {
+        InputStream fis = new FileInputStream(nombreArchivo);
+
+        byte[] buffer = new byte[1024];
+        MessageDigest complete = MessageDigest.getInstance("MD5");
+        int numRead;
+        // Leer el archivo pedazo por pedazo
+        do {
+            // Leer datos y ponerlos dentro del búfer
+            numRead = fis.read(buffer);
+            // Si se leyó algo, se actualiza el MessageDigest
+            if (numRead > 0) {
+                complete.update(buffer, 0, numRead);
+            }
+        } while (numRead != -1);
+
+        fis.close();
+        // Devolver el arreglo de bytes
+        return complete.digest();
+    }
 }
