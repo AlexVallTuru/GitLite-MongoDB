@@ -8,6 +8,8 @@ import Interfaces.InterfaceDAO;
 import Singleton.MongoConnection;
 import Utils.Ficheros;
 import Utils.Utils;
+
+import static Utils.Ficheros.obtenerMD5ComoString;
 import static Utils.Utils.containsDetails;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
@@ -72,7 +74,7 @@ public class DocumentsDAO implements InterfaceDAO {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public void compareFiles(ArrayList<String> ruta) {
+    public void compareFiles(ArrayList<String> ruta) throws Exception {
 
         boolean containsDetails = containsDetails(ruta);
 
@@ -104,10 +106,33 @@ public class DocumentsDAO implements InterfaceDAO {
         //+ Mostra DETALLS
     }
 
-    private void compareSingleFile(ArrayList<String> ruta) {
+    private void compareSingleFile(ArrayList<String> ruta) throws Exception {
         //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari 
         // + FITXER de un fitxer en concret
+        String carpetaConArchivos = ruta.get(0);
+        File carpeta = new File(ruta.get(0));
+        File[] archivos = carpeta.listFiles();
+        File file = new File(ruta.get(1));
+        String archivoAComparar = ruta.get(1);
+        for (File archivo : archivos) {
+            if (archivo.isFile() && archivo.getName().endsWith(".txt")) {
+                if (file.lastModified() == archivo.lastModified()) {
+                    System.out.print("\n \t\t C 0 M P A R A N D 0 \n\n \t" + file.getName().toUpperCase() + " & & & " + archivo.getName().toUpperCase() +
+                            "\n\t- TIMESTPAMP IGUALES (FECHA MODIFICACION) \n");
+
+                    String checksum = obtenerMD5ComoString(archivoAComparar);
+                    String checksumAComparar = obtenerMD5ComoString(carpetaConArchivos + archivo.getName());
+                    if (checksum.equals(checksumAComparar)) {
+                        System.out.print("\t- CONTENIDO INTERNO IGUAL (HASH MD5)");
+                    } else {
+                        System.out.print("\t- CONTENIDO INTERNO DIFERENTE");
+                    }
+                    System.out.print("\n\n\t\t - - - - - - - - - -\n\n");
+                }
+            }
+        }
     }
+
 
     private void compareSingleFileWithDetails(ArrayList<String> ruta) {
         //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari 
