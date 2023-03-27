@@ -21,7 +21,7 @@ public interface InterfaceLogica {
 
     File pullFile(String file);
 
-    void compareFiles(ArrayList<String> file);
+    void compareFiles(String file, boolean containsDetails);
     
     void cloneRepository(String file);
     

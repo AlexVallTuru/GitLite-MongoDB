@@ -18,59 +18,71 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.security.MessageDigest;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 import org.bson.Document;
-
 
 /**
  *
  * @author carlo
  */
 public class Ficheros {
-    
-    public static String llegir(File file) throws FileNotFoundException, IOException{
-        BufferedReader br = new BufferedReader(new FileReader(file));     
+
+    public static String llegir(File file) throws FileNotFoundException, IOException {
+        BufferedReader br = new BufferedReader(new FileReader(file));
         StringBuilder sb = new StringBuilder();
         sb.append(br.readLine());
-        
-        while(br.readLine()!=null){
+
+        while (br.readLine() != null) {
             sb.append(br.readLine()).append("\n");
         }
-        
+
         return sb.toString();
-            
-        
+
     }
-    
-    public static String getExtensio(File file){
-        String name  = file.getName();
+
+    public static String getExtensio(File file) {
+        String name = file.getName();
         int limit = name.lastIndexOf(".");
-        String extension = name.substring(limit+1,name.length());
+        String extension = name.substring(limit + 1, name.length());
         return extension;
-        
+
     }
 
     public static void pushAllFiles(File file) {
-        File [] files = file.listFiles();
-        for(File fitxers : files){
-            if(fitxers.isDirectory()){
+        File[] files = file.listFiles();
+        for (File fitxers : files) {
+            if (fitxers.isDirectory()) {
                 pushAllFiles(fitxers);
-            }else{
-                
+            } else {
+
             }
-            
+
         }
     }
-    
-    public static void compareModifiedDate(File file, MongoCollection collection){
+
+    public static List<File> compareAllFiles(File file) {
+        List<File> lista = new ArrayList<>();
+        File[] files = file.listFiles();
+        for (File fitxers : files) {
+            if (fitxers.isDirectory()) {
+                compareAllFiles(fitxers);
+            } else {
+                lista.add(fitxers);
+            }
+        }
+        return lista;
+    }
+
+    public static void compareModifiedDate(File file, MongoCollection collection) {
         Date d = new Date(file.lastModified());
-        Document c = (Document) collection.find(Filters.eq("path",file.getPath().substring(2))).first();
+        Document c = (Document) collection.find(Filters.eq("path", file.getPath().substring(2))).first();
         System.out.println(c.getDate("modificacio"));
         System.out.println(d.equals(c.getDate("modificacio")));
-        
-  
+
     }
-    
-    public static void compareLines(){
+
+    public static void compareLines() {
         String line;
         String line1 = null;
 
@@ -91,9 +103,9 @@ public class Ficheros {
             while ((line = lectura.readLine()) != null) {
                 line1 = lectura1.readLine();
                 contadorDeLineas++;
-                if (!line.equals(line1) ) {
+                if (!line.equals(line1)) {
                     System.out.println("Linea " + contadorDeLineas + " diferente");
-                }else{
+                } else {
                     System.out.println("Linea" + contadorDeLineas + " igual");
                 }
             }
@@ -101,8 +113,8 @@ public class Ficheros {
         } catch (Exception exception) {
             exception.printStackTrace(System.out);
         }
-    }   
-    
+    }
+
     public static String obtenerMD5ComoString(String nombreArchivo) throws Exception {
         // Convertir el arreglo de bytes a cadena
         byte[] b = obtenerChecksum(nombreArchivo);
@@ -113,7 +125,7 @@ public class Ficheros {
         }
         return resultado.toString();
     }
-    
+
     public static byte[] obtenerChecksum(String nombreArchivo) throws Exception {
         InputStream fis = new FileInputStream(nombreArchivo);
 

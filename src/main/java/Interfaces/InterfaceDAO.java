@@ -17,7 +17,7 @@ public interface InterfaceDAO {
     void dropRepository(String repository);
     void pushFile(String file,String force);
     void pullFile(String file);
-    void compareFiles(ArrayList<String> file) throws Exception;
+    void compareFiles(String file, boolean containsDetails);
     void cloneRepository(String file);
     
 }

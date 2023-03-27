@@ -6,7 +6,6 @@ package Presentacio;
 
 import Logica.DocumentsLogica;
 import Singleton.MongoConnection;
-import static Utils.Utils.separarParametros;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
@@ -90,9 +89,19 @@ public class Menus {
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
         System.out.println("Indicar ruta: ");
-        String input = in.nextLine();
-        List<String> partes = separarParametros(input);
-        logica.compareFiles((ArrayList) partes);
+        String ruta = in.nextLine();
+        System.out.println("Quieres visualizar los detalles? (s/n)");
+        String resultado = in.nextLine();
+        boolean containsDetails = false;
+
+        if (resultado.equalsIgnoreCase("s")) {
+            logica.compareFiles(ruta, true);
+        } else if (resultado.equalsIgnoreCase("n")) {
+            logica.compareFiles(ruta, false);
+        } else {
+            System.out.print("\nIntroduce una opcion valida\n");
+        }
+
     }
 
     public static void menuClone() {

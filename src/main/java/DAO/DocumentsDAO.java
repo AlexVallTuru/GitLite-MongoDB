@@ -75,39 +75,7 @@ public class DocumentsDAO implements InterfaceDAO {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    public void compareFiles(ArrayList<String> ruta) throws Exception {
-
-        boolean containsDetails = containsDetails(ruta);
-
-        switch (ruta.size()) {
-            case 1:
-                compareAllFiles(ruta);
-                break;
-            case 2:
-                if (containsDetails) {
-                    compareAllFilesWithDetails(ruta);
-                } else {
-                    compareSingleFile(ruta);
-                }
-                break;
-            case 3:
-                compareSingleFileWithDetails(ruta);
-                break;
-            default:
-                System.out.println("Número incorrecto de argumentos");
-        }
-    }
-
-    private void compareAllFiles(ArrayList<String> ruta) {
-        //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari
-    }
-
-    private void compareAllFilesWithDetails(ArrayList<String> ruta) {
-        //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari 
-        //+ Mostra DETALLS
-    }
-
-    private void compareSingleFile(ArrayList<String> ruta) throws Exception {
+    /**
         System.out.print("\t\t\t\t C O M P A R A N D O\n");
         //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari
         // + FITXER de un fitxer en concret
@@ -145,18 +113,18 @@ public class DocumentsDAO implements InterfaceDAO {
         }
         System.out.print("\t\t\t\t - - - - - - - - - -\n");
     }
+**/
 
 
-
-    private void compareSingleFileWithDetails(ArrayList<String> ruta) {
-        //Procés que compara els continguts dels fitxers locals amb els seus equivalents remots i informa a l’usuari 
-        // + FITXER de un fitxer en concret
-        // + Mostra DETALLS
-    }
 
     @Override
     public void cloneRepository(String file) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void compareFiles(String file, boolean containsDetails) {
+        
     }
 
 }

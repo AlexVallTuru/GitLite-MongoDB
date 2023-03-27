@@ -47,36 +47,4 @@ public class Utils {
         return path;
 
     }
-
-    public static List<String> separarParametros(String input) {
-        List<String> parametros = new ArrayList<>();
-        String[] partes = input.split("::");
-        for (String parte : partes) {
-            parte = parte.trim();
-            if (!parte.isEmpty()) {
-                parametros.add(parte);
-            }
-        }
-        return parametros;
-    }
-
-    public static boolean containsDetails(ArrayList<String> list) {
-        for (String s : list) {
-            if (s.contains("-d")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static String aniadirBarraFinal(String ruta){
-        if(!ruta.endsWith("/") | !ruta.endsWith("\\")){
-            if (File.separator.equals("/")) {
-                ruta += "/";
-            } else {
-                ruta += "\\";
-            }
-        }
-        return ruta;
-    }
 }
