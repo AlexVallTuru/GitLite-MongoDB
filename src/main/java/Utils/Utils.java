@@ -50,7 +50,7 @@ public class Utils {
 
     public static List<String> separarParametros(String input) {
         List<String> parametros = new ArrayList<>();
-        String[] partes = input.split(":");
+        String[] partes = input.split("::");
         for (String parte : partes) {
             parte = parte.trim();
             if (!parte.isEmpty()) {
@@ -67,5 +67,16 @@ public class Utils {
             }
         }
         return false;
+    }
+
+    public static String aniadirBarraFinal(String ruta){
+        if(!ruta.endsWith("/") | !ruta.endsWith("\\")){
+            if (File.separator.equals("/")) {
+                ruta += "/";
+            } else {
+                ruta += "\\";
+            }
+        }
+        return ruta;
     }
 }
