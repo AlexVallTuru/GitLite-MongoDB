@@ -66,7 +66,7 @@ public class Menus {
 
     public static void menuDrop() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: ");
+        System.out.println("Indicar repositori: ");
         String ruta = in.nextLine();
 
         logica.dropRepository(ruta);
@@ -96,7 +96,10 @@ public class Menus {
     }
 
     public static void menuClone() {
-
+        Scanner in = new Scanner(System.in);
+        System.out.println("Indicar repositori: ");
+        String repo = in.nextLine();
+        logica.cloneRepository(repo);
     }
 
     public static int menuAyuda() {

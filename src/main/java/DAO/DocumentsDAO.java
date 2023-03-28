@@ -24,6 +24,7 @@ public class DocumentsDAO implements InterfaceDAO {
 
     File rem = null;
     String userHome = System.getProperty("user.home");
+    String fileSeparator = System.getProperty("file.separator");
     String userFolder = "getRepo1";
     String repositoryName = null;
     MongoClient connection = MongoConnection.getInstance();
@@ -32,7 +33,25 @@ public class DocumentsDAO implements InterfaceDAO {
 
     @Override
     public void createRepository(String ruta) {
-
+        System.out.println("Creant repositori...");
+        
+        //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
+        if (ruta.matches("^[A-Za-z]:\\" + fileSeparator + ".*")) {
+            ruta = ruta.substring(3);
+        } else if (ruta.startsWith(fileSeparator)) {
+            ruta = ruta.substring(1);
+        }
+        
+        //Canvia els separadors de ruta per _
+        ruta = ruta.replace(fileSeparator, "_");
+        
+        //Crea el nou repositori amb el nom de la ruta processada
+        /**
+         * Aqui hi anira la creacio de col·leccio, falta la creacio de la BD al
+         * MongoClient
+         * 
+         * connection.getDatabase("GETDB").getCollection(ruta);
+         */
     }
 
     @Override
