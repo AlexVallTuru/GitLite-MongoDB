@@ -79,7 +79,6 @@ public class Ficheros {
         Document c = (Document) collection.find(Filters.eq("path", file.getPath().substring(2))).first();
         System.out.println(c.getDate("modificacio"));
         System.out.println(d.equals(c.getDate("modificacio")));
-
     }
 
     public static void compareLines() {

@@ -39,7 +39,6 @@ public class Utils {
                 .append("contingut", Ficheros.llegir(file));
 
         return doc;
-
     }
 
     public static File documentToFile(Document document) throws IOException {
