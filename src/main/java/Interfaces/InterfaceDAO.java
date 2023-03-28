@@ -18,7 +18,12 @@ public interface InterfaceDAO {
     void dropRepository(String repository);
     void pushFile(String file,String force);
     void pullFile(String file);
+<<<<<<< HEAD
     void compareFiles(String file, boolean containsDetails) throws ParseException;
     void cloneRepository(String file);
+=======
+    void compareFiles(ArrayList<String> file);
+    void cloneRepository(String file, String date);
+>>>>>>> develop
     
 }
