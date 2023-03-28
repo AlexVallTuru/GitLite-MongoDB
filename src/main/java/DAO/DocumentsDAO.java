@@ -10,6 +10,7 @@ import Utils.Ficheros;
 import Utils.Utils;
 import static Utils.Utils.containsDetails;
 import com.mongodb.MongoClient;
+import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
@@ -31,6 +32,15 @@ public class DocumentsDAO implements InterfaceDAO {
     MongoDatabase repository = null;
     String idRemot = null;
 
+    /**
+     * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
+     * El nom de la ruta es la direcció del repositori localment, canviant els
+     * separadors de fitxers per _. 
+     * Per exemple: "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es
+     * converteix en "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     * 
+     * @param ruta 
+     */
     @Override
     public void createRepository(String ruta) {
         System.out.println("Creant repositori...");
@@ -54,9 +64,27 @@ public class DocumentsDAO implements InterfaceDAO {
          */
     }
 
+    /**
+     * Elimina un repositori indicat per l'usuari de la BBDD si aquest existeix.
+     * 
+     * @param repositori 
+     */
     @Override
-    public void dropRepository(String path) {
-
+    public void dropRepository(String repositori) {
+        try {
+            //Obtenim el repositori si existeix
+            MongoCollection<Document> coleccio = repository.getCollection(repositori);
+            if (coleccio != null) {
+                coleccio.drop(); //Si existeix, s'elimina la col·lecció
+                System.out.println("Repositori " 
+                        + repositori + " eliminat correctament.");
+            } else {
+                System.out.println("El repositori " 
+                        + repositori + " no existeix.");
+            }
+        } catch (MongoException ex) {
+            System.out.println("Excepció: " + ex);
+        }
     }
 
     @Override
