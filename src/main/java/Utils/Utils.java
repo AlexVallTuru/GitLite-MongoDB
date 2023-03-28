@@ -8,8 +8,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Date;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import org.bson.Document;
 
@@ -40,6 +40,23 @@ public class Utils {
 
         return doc;
 
+    }
+
+    public static File documentToFile(Document document) throws IOException {
+        String path = document.getString("path");
+        String nom = document.getString("nom");
+        String extensio = document.getString("extensio");
+        int tamany = document.getInteger("tamany");
+        Date modificacio = document.getDate("modificacio");
+        byte[] contingut = document.getString("contingut").getBytes();
+
+        File file = new File(path);
+        Files.write(file.toPath(), contingut);
+
+        // Establecer la fecha de modificación del archivo
+        file.setLastModified(modificacio.getTime());
+
+        return file;
     }
 
     public static String generateRepositoryName(File file) {

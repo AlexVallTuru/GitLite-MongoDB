@@ -16,7 +16,13 @@ import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+
 import org.bson.Document;
 
 /**
@@ -123,8 +129,47 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void compareFiles(String file, boolean containsDetails) {
-        
+    public void compareFiles(String file, boolean containsDetails) throws ParseException {
+        // Configurar la conexión a la base de datos
+        MongoClient mongoClient = new MongoClient("localhost", 27017);
+
+        // Obtener la base de datos
+        MongoDatabase database = mongoClient.getDatabase("GETBD");
+
+        // Obtener una referencia a la colección
+        MongoCollection<Document> collection = database.getCollection("Users");
+
+        // Construir la consulta
+        Document query = new Document("path", "\\Users\\avall\\Desktop\\primero.txt");
+
+        // Obtener el primer documento que cumple con la consulta
+        Document documento = collection.find(query).first();
+
+
+        // Imprimir el documento obtenido
+        System.out.println(documento);
+
+        // Cerrar la conexión a la base de datos
+        mongoClient.close();
+
+
+        // TODO LO ANTERIOR ES PAJA
+
+        File bddFile;
+        try {
+            bddFile = Utils.documentToFile(documento);
+            System.out.println("Esto es un file: \n" + bddFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        File localFile = new File("\\Users\\avall\\Desktop\\primero.txt");
+        System.out.print("El contenido del timestamps de la baseDeDatos es de " +  bddFile.lastModified() + "\n"
+                + "El contenido del timestamps local es de " + localFile.lastModified());
+        if (bddFile.lastModified() == localFile.lastModified()){
+            System.out.print("\nSON IGUALES");
+        } else {
+            System.out.print("\nSon diferentes");
+        }
     }
 
 }
