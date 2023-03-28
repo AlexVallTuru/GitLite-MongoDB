@@ -18,6 +18,6 @@ public interface InterfaceDAO {
     void pushFile(String file,String force);
     void pullFile(String file);
     void compareFiles(ArrayList<String> file);
-    void cloneRepository(String file);
+    void cloneRepository(String file, String date);
     
 }

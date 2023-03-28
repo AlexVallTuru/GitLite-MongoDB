@@ -14,6 +14,9 @@ import com.mongodb.MongoException;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import org.bson.Document;
 
@@ -35,51 +38,78 @@ public class DocumentsDAO implements InterfaceDAO {
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
      * El nom de la ruta es la direcció del repositori localment, canviant els
-     * separadors de fitxers per _. 
-     * Per exemple: "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es
-     * converteix en "Users_mole6_OneDrive_Documentos_NetBeansProjects".
-     * 
-     * @param ruta 
+     * separadors de fitxers per _. Per exemple:
+     * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
+     * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     *
+     * @param ruta
      */
     @Override
     public void createRepository(String ruta) {
-        System.out.println("Creant repositori...");
-        
-        //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
-        if (ruta.matches("^[A-Za-z]:\\" + fileSeparator + ".*")) {
-            ruta = ruta.substring(3);
-        } else if (ruta.startsWith(fileSeparator)) {
-            ruta = ruta.substring(1);
-        }
-        
-        //Canvia els separadors de ruta per _
-        ruta = ruta.replace(fileSeparator, "_");
-        
-        //Crea el nou repositori amb el nom de la ruta processada
         /**
-         * Aqui hi anira la creacio de col·leccio, falta la creacio de la BD al
-         * MongoClient
-         * 
-         * connection.getDatabase("GETDB").getCollection(ruta);
+         * TODO Eliminar cuando la creacion de la BD este implementada
          */
+        repository = connection.getDatabase("GETDB");
+
+        System.out.println("Creant repositori...");
+        //Comproba si la ruta indicada per l'usuari existeix localment
+        Path userPath = Paths.get(ruta);
+        if (Files.exists(userPath)) {
+            //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
+            if (ruta.matches("^[A-Za-z]:\\" + fileSeparator + ".*")) {
+                ruta = ruta.substring(3);
+            } else if (ruta.startsWith(fileSeparator)) {
+                ruta = ruta.substring(1);
+            }
+
+            //Canvia els separadors de ruta per _
+            ruta = ruta.replace(fileSeparator, "_");
+
+            //Comprobem si la col·lecció ja existeix
+            boolean collectionExists = repository.listCollectionNames()
+                    .into(new ArrayList<>()).contains(ruta);
+            if (collectionExists) {
+                System.out.println("ERROR: Aquest repositori ja existeix.");
+            } else {
+                //Crea el nou repositori amb el nom de la ruta processada
+                repository.getCollection(ruta);
+                System.out.println("Repositori creat correctament.");
+                /**
+                 * TODO Codigo para que la coleccion sea creada forzadamente,
+                 * eliminar antes de subir la practica
+                 */
+                Document del = new Document();
+                del.append("1", "del");
+                repository.getCollection(ruta).insertOne(del);
+                repository.getCollection(ruta).deleteOne(del);
+            }
+        } else {
+            System.out.println("La ruta no existeix localment.");
+        }
+
     }
 
     /**
      * Elimina un repositori indicat per l'usuari de la BBDD si aquest existeix.
-     * 
-     * @param repositori 
+     *
+     * @param repositori
      */
     @Override
     public void dropRepository(String repositori) {
         try {
+            /**
+             * TODO Eliminar cuando la creacion de la BD este implementada
+             */
+            repository = connection.getDatabase("GETDB");
+
             //Obtenim el repositori si existeix
-            MongoCollection<Document> coleccio = repository.getCollection(repositori);
-            if (coleccio != null) {
-                coleccio.drop(); //Si existeix, s'elimina la col·lecció
-                System.out.println("Repositori " 
-                        + repositori + " eliminat correctament.");
+            boolean collectionExists = repository.listCollectionNames()
+                    .into(new ArrayList<>()).contains(repositori);
+            if (collectionExists) {
+                MongoCollection<Document> coleccio = repository.getCollection(repositori);
+                coleccio.drop();
             } else {
-                System.out.println("El repositori " 
+                System.out.println("El repositori "
                         + repositori + " no existeix.");
             }
         } catch (MongoException ex) {
@@ -163,8 +193,8 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void cloneRepository(String file) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void cloneRepository(String file, String date) {
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
 }

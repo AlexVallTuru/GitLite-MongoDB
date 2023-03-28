@@ -23,6 +23,6 @@ public interface InterfaceLogica {
 
     void compareFiles(ArrayList<String> file);
     
-    void cloneRepository(String file);
+    void cloneRepository(String file, String date);
     
 }

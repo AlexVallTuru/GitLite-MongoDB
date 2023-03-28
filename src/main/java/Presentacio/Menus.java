@@ -99,7 +99,9 @@ public class Menus {
         Scanner in = new Scanner(System.in);
         System.out.println("Indicar repositori: ");
         String repo = in.nextLine();
-        logica.cloneRepository(repo);
+        System.out.println("Indica una data (opcional): ");
+        String date = in.nextLine();
+        logica.cloneRepository(repo, date);
     }
 
     public static int menuAyuda() {
