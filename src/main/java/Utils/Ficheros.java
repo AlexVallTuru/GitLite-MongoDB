@@ -114,9 +114,14 @@ public class Ficheros {
         }
     }
 
-    public static String obtenerMD5ComoString(String nombreArchivo) throws Exception {
+    public static boolean sonArchivosIgualesPorMD5(File archivo1, File archivo2) throws Exception {
+        String md5Archivo1 = obtenerMD5ComoString(archivo1);
+        String md5Archivo2 = obtenerMD5ComoString(archivo2);
+        return md5Archivo1.equals(md5Archivo2);
+    }
+    public static String obtenerMD5ComoString(File archivo) throws Exception {
         // Convertir el arreglo de bytes a cadena
-        byte[] b = obtenerChecksum(nombreArchivo);
+        byte[] b = obtenerChecksum(archivo);
         StringBuilder resultado = new StringBuilder();
 
         for (byte unByte : b) {
@@ -125,8 +130,8 @@ public class Ficheros {
         return resultado.toString();
     }
 
-    public static byte[] obtenerChecksum(String nombreArchivo) throws Exception {
-        InputStream fis = new FileInputStream(nombreArchivo);
+    public static byte[] obtenerChecksum(File archivo) throws Exception {
+        InputStream fis = new FileInputStream(archivo);
 
         byte[] buffer = new byte[1024];
         MessageDigest complete = MessageDigest.getInstance("MD5");

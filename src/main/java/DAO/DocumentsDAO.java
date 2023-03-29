@@ -6,13 +6,11 @@ package DAO;
 
 import Interfaces.InterfaceDAO;
 import Singleton.MongoConnection;
-import static Singleton.MongoConnection.setRepositoryName;
+
 import Utils.Ficheros;
 import Utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
-import com.mongodb.client.MongoCollection;
-import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
@@ -21,7 +19,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
+
+import static Singleton.MongoConnection.getCollection;
+import static Singleton.MongoConnection.setRepositoryName;
+import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Utils.documentToFile;
+import static Utils.Utils.fileToDocument;
 
 /**
  *
@@ -39,6 +45,11 @@ public class DocumentsDAO implements InterfaceDAO {
     String idRemot = null;
     MongoDatabase db = MongoConnection.getDataBase();
 
+    Path repoPath = MongoConnection.getRepositoryPath();
+    String repoName = MongoConnection.getRepositoryName();
+
+    MongoCollection<Document> collection = MongoConnection.getCollection();
+
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
      * El nom de la ruta es la direcció del repositori localment, canviant els
@@ -53,7 +64,7 @@ public class DocumentsDAO implements InterfaceDAO {
         /**
          * TODO Eliminar cuando la creacion de la BD este implementada
          */
-        repository = connection.getDatabase("GETDB");
+        repository = connection.getDatabase("GETBD");
 
         System.out.println("Creant repositori...");
         //Comproba si la ruta indicada per l'usuari existeix localment
@@ -185,37 +196,25 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void compareFiles(String file, boolean containsDetails) throws ParseException {
+    public void compareFiles(String file, boolean containsDetails) throws Exception {
 
-        
-       repositoryPath --> Se tiene que concatenar con file !!!!
+        if(file.equals(null)){
 
-        // Construir la consulta
-        Document query = new Document("path", "\\Users\\avall\\Desktop\\primero.txt");
+        }else{
+            Path secondPath = Paths.get(file);
+            Path resolvedPath = repoPath.resolve(secondPath);
+            Document query = new Document("path", resolvedPath.toString());
+            File localFile = new File(resolvedPath.toString());
+            Document documento = collection.find(query).first();
+            File dbFile = documentToFile(documento);
+            System.out.print("DbFILE: "+dbFile.lastModified() + "\nlocalFile: " + localFile.lastModified());
+            if(dbFile.lastModified() == localFile.lastModified()){
+                System.out.print("\nSon iguales!\n");
+            }else if(sonArchivosIgualesPorMD5(dbFile,localFile)){
+                System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
+            };
 
-        // Obtener el primer documento que cumple con la consulta
-        //Document documento = colection.find(query).first();
-        
-        System.out.println("El contenido del documento es: " + documento);
 
-        // Imprimir el documento obtenido
-        System.out.println(documento);
-
-        // TODO LO ANTERIOR ES PAJA
-        File bddFile;
-        try {
-            bddFile = Utils.documentToFile(documento);
-            System.out.println("Esto es un file: \n" + bddFile);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        File localFile = new File("\\Users\\avall\\Desktop\\primero.txt");
-        System.out.print("El contenido del timestamps de la baseDeDatos es de " + bddFile.lastModified() + "\n"
-                + "El contenido del timestamps local es de " + localFile.lastModified());
-        if (bddFile.lastModified() == localFile.lastModified()) {
-            System.out.print("\nSON IGUALES");
-        } else {
-            System.out.print("\nSon diferentes");
         }
     }
 

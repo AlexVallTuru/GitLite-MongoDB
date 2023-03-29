@@ -5,6 +5,7 @@
 package Interfaces;
 
 import java.io.File;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
 
@@ -18,7 +19,7 @@ public interface InterfaceDAO {
     void dropRepository(String repository);
     void pushFile(String file,String force);
     void pullFile(String file);
-    void compareFiles(String file, boolean containsDetails) throws ParseException;
+    void compareFiles(String file, boolean containsDetails) throws Exception;
     void cloneRepository(String file);
     void cloneRepository(String file, String date);
     

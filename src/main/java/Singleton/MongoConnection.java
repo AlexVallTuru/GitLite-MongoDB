@@ -20,12 +20,17 @@ public class MongoConnection {
     private static Path repositoryPath;
     private static MongoDatabase dataBase;
 
+    private static MongoCollection<Document> collection;
+
     private MongoConnection() {
 
         this.client = new MongoClient("localhost", 27017);
         this.dataBase = client.getDatabase("GETBD");
-        this.repositoryName = "Users_Alex_Desktop";
-        this.repositoryPath = Paths.get("\\Users\\Alex\\Desktop");
+
+        //CODIGO HARDCODEADO - SE TIENE QUE IMPLEMENTAR A TRAVES DE FUNCIONES
+        this.repositoryName = "Users_avall_Desktop";
+        this.repositoryPath = Paths.get("\\Users\\avall\\Desktop\\");
+        this.collection = dataBase.getCollection(repositoryName);
     }
 
     public static MongoClient getInstance() {
@@ -56,4 +61,17 @@ public class MongoConnection {
     public static MongoDatabase getDataBase() {
         return dataBase;
     }
+
+    public static Path getRepositoryPath() {
+        return repositoryPath;
+    }
+
+    public static String getRepositoryName() {
+        return repositoryName;
+    }
+
+    public static MongoCollection<Document> getCollection() {
+        return collection;
+    }
+
 }
