@@ -16,6 +16,7 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -114,40 +115,22 @@ public class Ficheros {
         }
     }
 
-    public static boolean sonArchivosIgualesPorMD5(File archivo1, File archivo2) throws Exception {
-        String md5Archivo1 = obtenerMD5ComoString(archivo1);
-        String md5Archivo2 = obtenerMD5ComoString(archivo2);
-        return md5Archivo1.equals(md5Archivo2);
+    public static boolean sonArchivosIgualesPorMD5(String contenido1, String contenido2) throws Exception {
+        byte[] bytesContenido1 = contenido1.getBytes(StandardCharsets.UTF_8);
+        byte[] bytesContenido2 = contenido2.getBytes(StandardCharsets.UTF_8);
+        String md5Contenido1 = obtenerMD5ComoString(bytesContenido1);
+        String md5Contenido2 = obtenerMD5ComoString(bytesContenido2);
+        return md5Contenido1.equals(md5Contenido2);
     }
-    public static String obtenerMD5ComoString(File archivo) throws Exception {
-        // Convertir el arreglo de bytes a cadena
-        byte[] b = obtenerChecksum(archivo);
-        StringBuilder resultado = new StringBuilder();
 
+    public static String obtenerMD5ComoString(byte[] contenido) throws Exception {
+        MessageDigest complete = MessageDigest.getInstance("MD5");
+        complete.update(contenido);
+        byte[] b = complete.digest();
+        StringBuilder resultado = new StringBuilder();
         for (byte unByte : b) {
             resultado.append(Integer.toString((unByte & 0xff) + 0x100, 16).substring(1));
         }
         return resultado.toString();
-    }
-
-    public static byte[] obtenerChecksum(File archivo) throws Exception {
-        InputStream fis = new FileInputStream(archivo);
-
-        byte[] buffer = new byte[1024];
-        MessageDigest complete = MessageDigest.getInstance("MD5");
-        int numRead;
-        // Leer el archivo pedazo por pedazo
-        do {
-            // Leer datos y ponerlos dentro del búfer
-            numRead = fis.read(buffer);
-            // Si se leyó algo, se actualiza el MessageDigest
-            if (numRead > 0) {
-                complete.update(buffer, 0, numRead);
-            }
-        } while (numRead != -1);
-
-        fis.close();
-        // Devolver el arreglo de bytes
-        return complete.digest();
     }
 }

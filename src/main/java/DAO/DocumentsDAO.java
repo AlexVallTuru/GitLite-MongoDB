@@ -5,6 +5,7 @@
 package DAO;
 
 import Interfaces.InterfaceDAO;
+import Model.Fitxer;
 import Singleton.MongoConnection;
 
 import Utils.Ficheros;
@@ -12,8 +13,6 @@ import Utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.io.File;
-import java.io.IOException;
-import java.text.ParseException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,12 +21,11 @@ import java.util.ArrayList;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-
-import static Singleton.MongoConnection.getCollection;
 import static Singleton.MongoConnection.setRepositoryName;
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
+import java.nio.file.NoSuchFileException;
 
 /**
  *
@@ -188,7 +186,7 @@ public class DocumentsDAO implements InterfaceDAO {
      * (checksum.equals(checksumAComparar)) { System.out.print(" CONTENIDO
      * IGUAL\n"); } else { System.out.print(" CONTENIDO DIFERENTE\n"); } } } }
      * System.out.print("\t\t\t\t - - - - - - - - - -\n"); }
-*
+     *
      */
     @Override
     public void cloneRepository(String file, String date) {
@@ -196,24 +194,38 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void compareFiles(String file, boolean containsDetails) throws Exception {
+    public void compareFiles(String inputPathfile, boolean containsDetails) throws Exception {
 
-        if(file.equals(null)){
+        if (inputPathfile.equals(null)) {
 
-        }else{
-            Path secondPath = Paths.get(file);
+        } else {
+            //GENERAMOS UN PATH CON EL FILE ADJUNTO
+            Path secondPath = Paths.get(inputPathfile);
             Path resolvedPath = repoPath.resolve(secondPath);
-            Document query = new Document("path", resolvedPath.toString());
-            File localFile = new File(resolvedPath.toString());
-            Document documento = collection.find(query).first();
-            File dbFile = documentToFile(documento);
-            System.out.print("DbFILE: "+dbFile.lastModified() + "\nlocalFile: " + localFile.lastModified());
-            if(dbFile.lastModified() == localFile.lastModified()){
-                System.out.print("\nSon iguales!\n");
-            }else if(sonArchivosIgualesPorMD5(dbFile,localFile)){
-                System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
-            };
 
+            try {
+                File localFile = new File(resolvedPath.toString());
+                long localTimeStamp = fileToDocument(localFile).getDate("modificacio").getTime();
+                String contenidoLocal = fileToDocument(localFile).getString("contingut");
+                Document query = new Document("path", resolvedPath.toString());
+                Document documento = collection.find(query).first();
+                String contenidoDb = documento.getString("contingut");
+                long dbTimeStamp = documento.getDate("modificacio").getTime();
+
+                if (dbTimeStamp == localTimeStamp) {
+                    System.out.print("\nSon iguales!\n");
+                } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
+                    System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
+                } else {
+                    System.out.println("Son distintos");
+                }
+            } catch (NoSuchFileException e) {
+                System.out.println("ERROR:\tDocumento local no encontrado:\t" + e.getMessage() + "\n");
+            } catch (NullPointerException e){
+                System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos:\t" + e.getMessage() + "\n");
+            }
+            
+             
 
         }
     }
