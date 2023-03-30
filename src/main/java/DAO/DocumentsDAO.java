@@ -10,6 +10,7 @@ import Singleton.MongoConnection;
 
 import Utils.Ficheros;
 import Utils.Utils;
+import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.io.File;
@@ -19,13 +20,17 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
-import static Singleton.MongoConnection.setRepositoryName;
+
+import static Singleton.MongoConnection.*;
+import static Utils.Ficheros.compareAllFiles;
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
 import java.nio.file.NoSuchFileException;
+import java.util.List;
 
 /**
  *
@@ -43,7 +48,7 @@ public class DocumentsDAO implements InterfaceDAO {
     String idRemot = null;
     MongoDatabase db = MongoConnection.getDataBase();
 
-    Path repoPath = MongoConnection.getRepositoryPath();
+    Path repoPath = getRepositoryPath();
     String repoName = MongoConnection.getRepositoryName();
 
     MongoCollection<Document> collection = MongoConnection.getCollection();
@@ -196,7 +201,42 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void compareFiles(String inputPathfile, boolean containsDetails) throws Exception {
 
-        if (inputPathfile.equals(null)) {
+        if (inputPathfile.isEmpty()) {
+
+            //1.    - OBTENER UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO DE MONGO DB
+
+            MongoCursor<Document> allFilesDb = collection.find().iterator();
+
+            ArrayList<Document> documentsDb = new ArrayList<>();
+            while (allFilesDb.hasNext()) {
+                documentsDb.add(allFilesDb.next());
+            }
+
+            //2.    - OBTENER UN ARCHIVO DE ESTE ARRAY
+
+            /**while (allFilesDb.hasNext()) {
+                System.out.println("collection is " +allFilesDb.next().getString("nom") );
+            }**/
+
+            //3.    - REALIZAR UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO LOCAL
+
+                List<File> fileList = new ArrayList<>();
+                File directoryLocal = new File(getRepositoryPath().toUri());
+                fileList = compareAllFiles(directoryLocal);
+
+
+            //4.    - FILTRAR POR NOMBRE OBTENIDO EN EL PASO DOS AL ARRAY LOCAL
+            //5.    - UNA VEZ ENCONTRADO REALIZAR LA COMPARACION
+            //6.    - VOLVER AL PASO 2 Y OBTENER EL SIGUIENTE ARCHIVO
+
+            for (Document doc : documentsDb) {
+                for (File file:fileList) {
+                    if(doc.getString("nom").equals(file.getName())){
+                        System.out.print("ESTOS ESTAN EN LOCAL Y EN REMOTO:  " +file.getName() + " " +doc.getString("nom") + "\n" );
+                    }
+                }
+            }
+
 
         } else {
             //GENERAMOS UN PATH CON EL FILE ADJUNTO
@@ -204,29 +244,33 @@ public class DocumentsDAO implements InterfaceDAO {
             Path resolvedPath = repoPath.resolve(secondPath);
 
             try {
+
+                //TRATANDO DOCUMENTO LOCAL
                 File localFile = new File(resolvedPath.toString());
                 long localTimeStamp = fileToDocument(localFile).getDate("modificacio").getTime();
                 String contenidoLocal = fileToDocument(localFile).getString("contingut");
+
+                //TRATANDO DOCUMENTO MONGODB
                 Document query = new Document("path", resolvedPath.toString());
                 Document documento = collection.find(query).first();
                 String contenidoDb = documento.getString("contingut");
                 long dbTimeStamp = documento.getDate("modificacio").getTime();
 
-                if (dbTimeStamp == localTimeStamp) {
-                    System.out.print("\nSon iguales!\n");
-                } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
-                    System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
-                } else {
-                    System.out.println("Son distintos");
-                }
-            } catch (NoSuchFileException e) {
-                System.out.println("ERROR:\tDocumento local no encontrado:\t" + e.getMessage() + "\n");
-            } catch (NullPointerException e){
-                System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos:\t" + e.getMessage() + "\n");
-            }
-            
-             
+                //REALIZAMOS COMPROBACIONES
+                    if (dbTimeStamp == localTimeStamp) {
+                        System.out.print("\nSon iguales!\n");
+                    } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
+                        System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
+                    } else {
+                        System.out.println("Son distintos");
+                    }
 
+                //CONTROL DE ERRORES
+            } catch (NoSuchFileException | ArrayIndexOutOfBoundsException e) {
+                System.out.println("ERROR:\tDocumento local no encontrado\t\n");
+            } catch (NullPointerException e){
+                System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos\t\n");
+            }
         }
     }
 

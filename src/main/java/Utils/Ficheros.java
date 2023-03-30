@@ -18,6 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
+import java.sql.Array;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
@@ -62,17 +63,19 @@ public class Ficheros {
         }
     }
 
-    public static List<File> compareAllFiles(File file) {
+    public static ArrayList<File> compareAllFiles(File file) {
         List<File> lista = new ArrayList<>();
         File[] files = file.listFiles();
         for (File fitxers : files) {
             if (fitxers.isDirectory()) {
-                compareAllFiles(fitxers);
-            } else {
-                lista.add(fitxers);
+                List<File> listaRecursiva = new ArrayList<>();
+                listaRecursiva = compareAllFiles(fitxers);
+                lista.addAll(listaRecursiva);
+            } else if(fitxers.getName().endsWith(".txt")) {
+                    lista.add(fitxers);
             }
         }
-        return lista;
+        return (ArrayList<File>) lista;
     }
 
     public static void compareModifiedDate(File file, MongoCollection collection) {
