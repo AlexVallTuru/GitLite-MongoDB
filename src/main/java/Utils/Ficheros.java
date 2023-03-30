@@ -4,25 +4,24 @@
  */
 package Utils;
 
-import Singleton.MongoConnection;
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
-import java.sql.Array;
 import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
+
+import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Utils.fileToDocument;
 
 /**
  *
@@ -76,6 +75,31 @@ public class Ficheros {
             }
         }
         return (ArrayList<File>) lista;
+    }
+
+    public static void compareTwoFiles(Document localDoc, Document dbDoc){
+
+    try{
+        long localTimeStamp = localDoc.getDate("modificacio").getTime();
+        String contenidoLocal = localDoc.getString("contingut");
+        long dbTimeStamp = dbDoc.getDate("modificacio").getTime();
+        String contenidoDb = dbDoc.getString("contingut");
+
+        if (dbTimeStamp == localTimeStamp) {
+            System.out.print("\nSon iguales!\n\n");
+        } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
+            System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
+        } else {
+            System.out.println("Son distintos\n\n");
+        }
+
+    } catch (NoSuchFileException | ArrayIndexOutOfBoundsException e) {
+        System.out.println("ERROR:\tDocumento local no encontrado\t\n");
+    } catch (NullPointerException e){
+        System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos\t\n");
+    } catch (Exception e) {
+        throw new RuntimeException(e);
+    }
     }
 
     public static void compareModifiedDate(File file, MongoCollection collection) {

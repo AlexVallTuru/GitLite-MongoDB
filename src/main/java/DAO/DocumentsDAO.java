@@ -25,8 +25,7 @@ import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
 import static Singleton.MongoConnection.*;
-import static Utils.Ficheros.compareAllFiles;
-import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Ficheros.*;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
 import java.nio.file.NoSuchFileException;
@@ -167,32 +166,6 @@ public class DocumentsDAO implements InterfaceDAO {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
 
-    /**
-     * System.out.print("\t\t\t\t C O M P A R A N D O\n"); //Procés que compara
-     * els continguts dels fitxers locals amb els seus equivalents remots i
-     * informa a l’usuari // + FITXER de un fitxer en concret String
-     * carpetaConArchivos = aniadirBarraFinal(ruta.get(0)); File carpeta = new
-     * File(aniadirBarraFinal(ruta.get(0))); File[] archivos =
-     * carpeta.listFiles(); File file = new File(ruta.get(1)); String
-     * archivoAComparar = ruta.get(1); for (File archivo : archivos) { if
-     * (archivo.isFile() && archivo.getName().endsWith(".txt")) { if
-     * (file.lastModified() == archivo.lastModified()) {
-     * System.out.print(file.getName() + " & " + archivo.getName() + "\t\t\t\t
-     * FECHA IGUAL");
-     *
-     * String checksum = obtenerMD5ComoString(archivoAComparar); String
-     * checksumAComparar = obtenerMD5ComoString(carpetaConArchivos +
-     * archivo.getName()); if (checksum.equals(checksumAComparar)) {
-     * System.out.print(" CONTENIDO IGUAL\n"); } else { System.out.print("
-     * CONTENIDO DIFERENTE\n"); } } else{ System.out.print(file.getName() + " &
-     * " + archivo.getName() + "\t\t\t\t FECHA DIFERENTE"); String checksum =
-     * obtenerMD5ComoString(archivoAComparar); String checksumAComparar =
-     * obtenerMD5ComoString(carpetaConArchivos + archivo.getName()); if
-     * (checksum.equals(checksumAComparar)) { System.out.print(" CONTENIDO
-     * IGUAL\n"); } else { System.out.print(" CONTENIDO DIFERENTE\n"); } } } }
-     * System.out.print("\t\t\t\t - - - - - - - - - -\n"); }
-     *
-     */
     @Override
     public void cloneRepository(String file, String date) {
         throw new UnsupportedOperationException("Not supported yet.");
@@ -215,24 +188,25 @@ public class DocumentsDAO implements InterfaceDAO {
             //2.    - OBTENER UN ARCHIVO DE ESTE ARRAY
 
             /**while (allFilesDb.hasNext()) {
-                System.out.println("collection is " +allFilesDb.next().getString("nom") );
-            }**/
+             System.out.println("collection is " +allFilesDb.next().getString("nom") );
+             }**/
 
             //3.    - REALIZAR UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO LOCAL
 
-                List<File> fileList = new ArrayList<>();
-                File directoryLocal = new File(getRepositoryPath().toUri());
-                fileList = compareAllFiles(directoryLocal);
+            List<File> fileList = new ArrayList<>();
+            File directoryLocal = new File(getRepositoryPath().toUri());
+            fileList = compareAllFiles(directoryLocal);
 
 
             //4.    - FILTRAR POR NOMBRE OBTENIDO EN EL PASO DOS AL ARRAY LOCAL
             //5.    - UNA VEZ ENCONTRADO REALIZAR LA COMPARACION
             //6.    - VOLVER AL PASO 2 Y OBTENER EL SIGUIENTE ARCHIVO
 
-            for (Document doc : documentsDb) {
-                for (File file:fileList) {
-                    if(doc.getString("nom").equals(file.getName())){
-                        System.out.print("ESTOS ESTAN EN LOCAL Y EN REMOTO:  " +file.getName() + " " +doc.getString("nom") + "\n" );
+            for (Document documentoDb : documentsDb) {
+                for (File Localfile : fileList) {
+                    if (documentoDb.getString("nom").equals(Localfile.getName())) {
+                        System.out.print(Localfile.getName() + " " + documentoDb.getString("nom") + "\n");
+                        compareTwoFiles(fileToDocument(Localfile),documentoDb);
                     }
                 }
             }
@@ -243,37 +217,17 @@ public class DocumentsDAO implements InterfaceDAO {
             Path secondPath = Paths.get(inputPathfile);
             Path resolvedPath = repoPath.resolve(secondPath);
 
-            try {
+            //TRATANDO DOCUMENTO LOCAL
+            File localFile = new File(resolvedPath.toString());
+            Document documentLocal = fileToDocument(localFile);
 
-                //TRATANDO DOCUMENTO LOCAL
-                File localFile = new File(resolvedPath.toString());
-                long localTimeStamp = fileToDocument(localFile).getDate("modificacio").getTime();
-                String contenidoLocal = fileToDocument(localFile).getString("contingut");
+            //TRATANDO DOCUMENTO MONGODB
+            Document query = new Document("path", resolvedPath.toString());
+            Document documentoDb = collection.find(query).first();
 
-                //TRATANDO DOCUMENTO MONGODB
-                Document query = new Document("path", resolvedPath.toString());
-                Document documento = collection.find(query).first();
-                String contenidoDb = documento.getString("contingut");
-                long dbTimeStamp = documento.getDate("modificacio").getTime();
-
-                //REALIZAMOS COMPROBACIONES
-                    if (dbTimeStamp == localTimeStamp) {
-                        System.out.print("\nSon iguales!\n");
-                    } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
-                        System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n");
-                    } else {
-                        System.out.println("Son distintos");
-                    }
-
-                //CONTROL DE ERRORES
-            } catch (NoSuchFileException | ArrayIndexOutOfBoundsException e) {
-                System.out.println("ERROR:\tDocumento local no encontrado\t\n");
-            } catch (NullPointerException e){
-                System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos\t\n");
-            }
+            compareTwoFiles(documentLocal,documentoDb);
         }
     }
-
     @Override
     public void cloneRepository(String file) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
