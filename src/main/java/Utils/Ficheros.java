@@ -7,11 +7,7 @@ package Utils;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
@@ -21,6 +17,7 @@ import java.util.List;
 import org.bson.Document;
 
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
 
 /**
@@ -77,7 +74,7 @@ public class Ficheros {
         return (ArrayList<File>) lista;
     }
 
-    public static void compareTwoFiles(Document localDoc, Document dbDoc){
+    public static void compareTwoFiles(Document localDoc, Document dbDoc, Boolean containsDetails){
 
     try{
         long localTimeStamp = localDoc.getDate("modificacio").getTime();
@@ -90,7 +87,12 @@ public class Ficheros {
         } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
             System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
         } else {
-            System.out.println("Son distintos\n\n");
+            if (containsDetails){
+                compareLines(localDoc,dbDoc);
+            }else {
+                System.out.println("Son distintos\n\n");
+            }
+
         }
 
     } catch (NoSuchFileException | ArrayIndexOutOfBoundsException e) {
@@ -109,34 +111,42 @@ public class Ficheros {
         System.out.println(d.equals(c.getDate("modificacio")));
     }
 
-    public static void compareLines() {
+    public static void compareLines(Document doc1, Document doc2) {
         String line;
-        String line1 = null;
+        String line1;
 
         try {
-            File documento;
-            File documento1;
-            documento = new File("C:\\Users\\Alex\\Desktop\\RF05.txt");
-            documento1 = new File("C:\\Users\\Alex\\Desktop\\RF05 - copia.txt");
-            FileReader lector = new FileReader(documento);
-            BufferedReader lectura = new BufferedReader(lector);
+            // Extraer el contenido de los documentos
+            String content1 = doc1.getString("contingut");
+            String content2 = doc2.getString("contingut");
 
-            //Documento 2
-            FileReader lector1 = new FileReader(documento1);
-            BufferedReader lectura1 = new BufferedReader(lector1);
+            // Crear un lector de cadenas para cada documento
+            StringReader reader1 = new StringReader(content1);
+            BufferedReader lectura = new BufferedReader(reader1);
+
+            StringReader reader2 = new StringReader(content2);
+            BufferedReader lectura1 = new BufferedReader(reader2);
 
             int contadorDeLineas = 1; // Empezamos en la línea 1
-            System.out.println("-------------------- Comparando los archivos -------------------------");
+
             while ((line = lectura.readLine()) != null) {
                 line1 = lectura1.readLine();
                 contadorDeLineas++;
                 if (!line.equals(line1)) {
-                    System.out.println("Linea " + contadorDeLineas + " diferente");
-                } else {
-                    System.out.println("Linea" + contadorDeLineas + " igual");
+                    Boolean contadorDeLineasEliminadas = true;
+                    //TODO REALIZAR EL CONTAR DE LINEAS DEL DOC2 BIEN REALIZADO, YA QUE ACTUALMENTE VA MAL
+                    for (int i=0; i >= lectura1.lines().count();i++){
+                        if(line.equals(line1)){
+                            System.out.print("La linea " +contadorDeLineas+ " s'ha modificat\n");
+                            contadorDeLineasEliminadas = false;
+                            break;
+                        }
+                    }
+                    if(!contadorDeLineasEliminadas){
+                        System.out.print("La linea " +contadorDeLineas+" s'ha eliminat\n");
+                    }
                 }
             }
-            System.err.println("----------------- No quedan mas lineas a analizar -----------------------\n");
         } catch (Exception exception) {
             exception.printStackTrace(System.out);
         }

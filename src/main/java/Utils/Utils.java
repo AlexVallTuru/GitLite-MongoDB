@@ -5,6 +5,7 @@
 package Utils;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -45,12 +46,14 @@ public class Utils {
         String path = document.getString("path");
         String nom = document.getString("nom");
         String extensio = document.getString("extensio");
-        int tamany = document.getInteger("tamany");
+        long tamany = document.getLong("tamany");
         Date modificacio = document.getDate("modificacio");
         byte[] contingut = document.getString("contingut").getBytes();
 
         File file = new File(path);
-        Files.write(file.toPath(), contingut);
+        FileOutputStream fos = new FileOutputStream(file);
+        fos.write(contingut);
+        fos.close();
 
         // Establecer la fecha de modificación del archivo
         file.setLastModified(modificacio.getTime());

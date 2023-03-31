@@ -186,17 +186,11 @@ public class DocumentsDAO implements InterfaceDAO {
             }
 
             //2.    - OBTENER UN ARCHIVO DE ESTE ARRAY
-
-            /**while (allFilesDb.hasNext()) {
-             System.out.println("collection is " +allFilesDb.next().getString("nom") );
-             }**/
-
             //3.    - REALIZAR UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO LOCAL
 
             List<File> fileList = new ArrayList<>();
             File directoryLocal = new File(getRepositoryPath().toUri());
             fileList = compareAllFiles(directoryLocal);
-
 
             //4.    - FILTRAR POR NOMBRE OBTENIDO EN EL PASO DOS AL ARRAY LOCAL
             //5.    - UNA VEZ ENCONTRADO REALIZAR LA COMPARACION
@@ -206,7 +200,7 @@ public class DocumentsDAO implements InterfaceDAO {
                 for (File Localfile : fileList) {
                     if (documentoDb.getString("nom").equals(Localfile.getName())) {
                         System.out.print(Localfile.getName() + " " + documentoDb.getString("nom") + "\n");
-                        compareTwoFiles(fileToDocument(Localfile),documentoDb);
+                        compareTwoFiles(fileToDocument(Localfile),documentoDb,containsDetails);
                     }
                 }
             }
@@ -225,7 +219,7 @@ public class DocumentsDAO implements InterfaceDAO {
             Document query = new Document("path", resolvedPath.toString());
             Document documentoDb = collection.find(query).first();
 
-            compareTwoFiles(documentLocal,documentoDb);
+            compareTwoFiles(documentLocal,documentoDb,containsDetails);
         }
     }
     @Override
