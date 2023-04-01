@@ -4,6 +4,7 @@
  */
 package Presentacio;
 
+import DAO.MenuDAO;
 import Logica.DocumentsLogica;
 import Singleton.MongoConnection;
 import com.mongodb.MongoClient;
@@ -32,12 +33,11 @@ public class Menus {
             Scanner in = new Scanner(System.in);
             System.out.print("""
                          || MENU ||
-                         1. CREATE
-                         2. DROP
-                         3. PUSH
-                         4. COMPARE
-                         5. CLONE
-                         6. SALIR
+                         1. DROP
+                         2. PUSH
+                         3. COMPARE
+                         4. CLONE
+                         5. SALIR
                          """);
             return in.nextInt();
 
@@ -53,11 +53,35 @@ public class Menus {
             System.out.println("Indicar ruta: ");
             String ruta = in.nextLine();
             logica.createRepository(ruta);
-
+            Menus.menuPrincipal();
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+    }
+
+    public static int menuInicio() {
+        try {
+            Scanner in = new Scanner(System.in);
+            System.out.println("""
+                           [INICIO]
+                           1. CREAR
+                           2. SELECCIONAR
+                           
+                           """);
+            return in.nextInt();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return 0;
+    }
+    
+    public static void selectRepository(){
+        try {
+            MenuDAO.repositoryList();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static void menuDrop() {
@@ -70,12 +94,14 @@ public class Menus {
     }
 
     public static void menuPush() {
+
+        System.out.println("[PUJAR FITXER]");
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: ");
+        System.out.println("[Indicar ruta]: ");
         String ruta = in.nextLine();
-        System.out.println("Indicar ruta: ");
+        System.out.println("[Vols forçar?]: ");
         String force = in.nextLine();
-        logica.pushFile(ruta,force);
+        logica.pushFile(ruta, force);
 
     }
 

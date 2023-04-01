@@ -42,8 +42,9 @@ public class DocumentsDAO implements InterfaceDAO {
 
     @Override
     public void pushFile(String file, String force) {
-        repositoryName = MongoConnection.getRepository();
-        repository = connection.getDatabase(repositoryName);
+        
+        MongoDatabase repository = MongoConnection.getDB();
+                
         try {
             if (repository != null) {
                 MongoCollection<Document> doc = repository.getCollection(repositoryName);

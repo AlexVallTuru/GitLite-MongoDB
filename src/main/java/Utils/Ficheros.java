@@ -50,9 +50,10 @@ public class Ficheros {
         File [] files = file.listFiles();
         for(File fitxers : files){
             if(fitxers.isDirectory()){
-                pushAllFiles(fitxers);
+                System.out.println("<Directorio> "+file.getAbsolutePath());
+                //pushAllFiles(fitxers);
             }else{
-                
+                System.out.println("<Fichero> "+file.getAbsolutePath());
             }
             
         }

@@ -19,8 +19,9 @@ public class MongoPractica {
     public static void main(String[] args) {
        int opc = 0;
        while(opc != 6){
-           opc=Menus.menuPrincipal();
-           MenuLogica.getOption(opc);
+           opc=Menus.menuInicio();
+           MenuLogica.getInitialOption(opc);
+           
        }
     }
 }

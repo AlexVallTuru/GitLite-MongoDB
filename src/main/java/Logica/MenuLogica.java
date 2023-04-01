@@ -12,19 +12,36 @@ import Presentacio.Menus;
  */
 public class MenuLogica {
 
-    public static void getOption(int option) {
+    public static void repositoryOptions(int option) {
+        try {
+            switch (option) {
+                case 1 ->
+                    Menus.menuDrop();
+                case 2 ->
+                    Menus.menuPush();
+                case 3 ->
+                    Menus.menuCompare();
+                case 4 ->
+                    Menus.menuClone();
+
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
+    
+        public static void getInitialOption(int option) {
         try {
             switch (option) {
                 case 1 ->
                     Menus.menuCreate();
+                    
+                    
                 case 2 ->
-                    Menus.menuDrop();
-                case 3 ->
-                    Menus.menuPush();
-                case 4 ->
-                    Menus.menuCompare();
-                case 5 ->
-                    Menus.menuClone();
+                    Menus.selectRepository();
+
 
             }
 
