@@ -176,25 +176,15 @@ public class DocumentsDAO implements InterfaceDAO {
 
         if (inputPathfile.isEmpty()) {
 
-            //1.    - OBTENER UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO DE MONGO DB
-
             MongoCursor<Document> allFilesDb = collection.find().iterator();
-
             ArrayList<Document> documentsDb = new ArrayList<>();
             while (allFilesDb.hasNext()) {
                 documentsDb.add(allFilesDb.next());
             }
 
-            //2.    - OBTENER UN ARCHIVO DE ESTE ARRAY
-            //3.    - REALIZAR UN ARRAY CON TODOS LOS ARCHIVOS DEL REPOSITORIO LOCAL
-
             List<File> fileList = new ArrayList<>();
             File directoryLocal = new File(getRepositoryPath().toUri());
             fileList = compareAllFiles(directoryLocal);
-
-            //4.    - FILTRAR POR NOMBRE OBTENIDO EN EL PASO DOS AL ARRAY LOCAL
-            //5.    - UNA VEZ ENCONTRADO REALIZAR LA COMPARACION
-            //6.    - VOLVER AL PASO 2 Y OBTENER EL SIGUIENTE ARCHIVO
 
             for (Document documentoDb : documentsDb) {
                 for (File Localfile : fileList) {
@@ -205,23 +195,20 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
             }
 
-
         } else {
-            //GENERAMOS UN PATH CON EL FILE ADJUNTO
             Path secondPath = Paths.get(inputPathfile);
             Path resolvedPath = repoPath.resolve(secondPath);
 
-            //TRATANDO DOCUMENTO LOCAL
             File localFile = new File(resolvedPath.toString());
             Document documentLocal = fileToDocument(localFile);
 
-            //TRATANDO DOCUMENTO MONGODB
             Document query = new Document("path", resolvedPath.toString());
             Document documentoDb = collection.find(query).first();
 
             compareTwoFiles(documentLocal,documentoDb,containsDetails);
         }
     }
+    
     @Override
     public void cloneRepository(String file) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
