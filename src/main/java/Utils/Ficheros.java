@@ -37,10 +37,15 @@ public class Ficheros {
             stringBuilder.append(line);
             stringBuilder.append(ls);
         }
-        stringBuilder.deleteCharAt(stringBuilder.length() - 1);
         reader.close();
 
-        String content = stringBuilder.toString();
+        String content;
+        if (stringBuilder.length() > 0) {
+            stringBuilder.deleteCharAt(stringBuilder.length() - 1);
+            content = stringBuilder.toString();
+        } else {
+            content = "";
+        }
         return content;
     }
 
@@ -82,14 +87,9 @@ public class Ficheros {
     public static void compareTwoFiles(Document localDoc, Document dbDoc, Boolean containsDetails) {
 
         try {
-            long localTimeStamp = localDoc.getDate("modificacio").getTime();
-            String contenidoLocal = localDoc.getString("contingut");
-            long dbTimeStamp = dbDoc.getDate("modificacio").getTime();
-            String contenidoDb = dbDoc.getString("contingut");
-
-            if (dbTimeStamp == localTimeStamp) {
+            if (compareTwoTimeStamp(localDoc,dbDoc)) {
                 System.out.print("\nSon iguales!\n\n");
-            } else if (sonArchivosIgualesPorMD5(contenidoDb, contenidoLocal)) {
+            } else if (sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
             } else {
                 if (containsDetails) {
@@ -108,6 +108,12 @@ public class Ficheros {
         }
     }
 
+    public static boolean compareTwoTimeStamp(Document doc1, Document doc2){
+        long localTimeStamp = doc1.getDate("modificacio").getTime();
+        long dbTimeStamp = doc2.getDate("modificacio").getTime();
+        return dbTimeStamp == localTimeStamp;
+    }
+
     public static void compareModifiedDate(File file, MongoCollection collection) {
         Date d = new Date(file.lastModified());
         Document c = (Document) collection.find(Filters.eq("path", file.getPath().substring(2))).first();
@@ -115,28 +121,14 @@ public class Ficheros {
         System.out.println(d.equals(c.getDate("modificacio")));
     }
 
-    public static void compareLines(Document doc1, Document doc2) {
+    public static void compareLines(Document doc1, Document doc2) throws IOException {
 
         int contadorDeLineas1 = 0;
-        ArrayList<String> lineas1 = new ArrayList<>();
-        ArrayList<String> lineas2 = new ArrayList<>();
-
-        try {
-            String content1 = doc1.getString("contingut");
-            String content2 = doc2.getString("contingut");
-
-            BufferedReader reader = new BufferedReader(new StringReader(content1));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                lineas1.add(line);
-            }
-
-            BufferedReader reader2 = new BufferedReader(new StringReader(content2));
-            while ((line = reader2.readLine()) != null) {
-                lineas2.add(line);
-            }
-
+        ArrayList<String> lineas1 = docToArrayListLines(doc1);
+        ArrayList<String> lineas2 = docToArrayListLines(doc2);
+        int contadorLineasIguales = 0;
             for (String linea1 : lineas1) {
+
                 contadorDeLineas1++;
                 int contadorDeLineas2 = 0;
                 for (String linea2 : lineas2) {
@@ -147,6 +139,7 @@ public class Ficheros {
                             break;
                         }
                     } else if (linea1.equals(lineas2.get(contadorDeLineas1 - 1))) {
+                        contadorLineasIguales++;
                         break;
                     } else if (linea1.equals(linea2)) {
                         System.out.println("La linea " + contadorDeLineas1 + " s'ha modificat.");
@@ -157,11 +150,7 @@ public class Ficheros {
                     }
                 }
             }
-        } catch (NullPointerException q) {
-            System.out.print("\nEl otro documento tiene mas lineas que el actual\n\n");
-        } catch (Exception e) {
-            e.printStackTrace(System.out);
-        }
+        System.out.println("S'ha trobat " + contadorLineasIguales + " líneas iguals.\n");
     }
 
     public static int countLines(String str) {
@@ -176,7 +165,23 @@ public class Ficheros {
         return count;
     }
 
-    public static boolean sonArchivosIgualesPorMD5(String contenido1, String contenido2) throws Exception {
+    public static boolean sonArchivosIgualesPorMD5(Document doc1, Document doc2) throws Exception {
+        ArrayList<String> localLines = docToArrayListLines(doc1);
+        ArrayList<String> dbLines = docToArrayListLines(doc2);
+
+        StringBuilder builder = new StringBuilder();
+        for (String line : localLines) {
+            builder.append(line);
+        }
+        String contenido1 = builder.toString();
+
+        builder.setLength(0); // Reset builder
+
+        for (String line : dbLines) {
+            builder.append(line);
+        }
+        String contenido2 = builder.toString();
+
         byte[] bytesContenido1 = contenido1.getBytes(StandardCharsets.UTF_8);
         byte[] bytesContenido2 = contenido2.getBytes(StandardCharsets.UTF_8);
         String md5Contenido1 = obtenerMD5ComoString(bytesContenido1);
@@ -193,5 +198,16 @@ public class Ficheros {
             resultado.append(Integer.toString((unByte & 0xff) + 0x100, 16).substring(1));
         }
         return resultado.toString();
+    }
+
+    public static ArrayList<String> docToArrayListLines(Document doc) throws IOException {
+        ArrayList<String> lineas = new ArrayList<>();
+        String content1 = doc.getString("contingut");
+        BufferedReader reader = new BufferedReader(new StringReader(content1));
+        String line;
+        while ((line = reader.readLine()) != null) {
+            lineas.add(line);
+        }
+        return lineas;
     }
 }

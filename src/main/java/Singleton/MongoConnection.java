@@ -28,8 +28,8 @@ public class MongoConnection {
         this.dataBase = client.getDatabase("GETBD");
 
         //CODIGO HARDCODEADO - SE TIENE QUE IMPLEMENTAR A TRAVES DE FUNCIONES
-        this.repositoryName = "Users_Alex_Desktop";
-        this.repositoryPath = Paths.get("\\Users\\Alex\\Desktop\\");
+        this.repositoryName = "Users_avall_Desktop";
+        this.repositoryPath = Paths.get("\\Users\\avall\\Desktop\\");
         this.collection = dataBase.getCollection(repositoryName);
     }
 

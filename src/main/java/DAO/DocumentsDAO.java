@@ -181,10 +181,9 @@ public class DocumentsDAO implements InterfaceDAO {
             while (allFilesDb.hasNext()) {
                 documentsDb.add(allFilesDb.next());
             }
-
-            List<File> fileList = new ArrayList<>();
             File directoryLocal = new File(getRepositoryPath().toUri());
-            fileList = compareAllFiles(directoryLocal);
+            //TODO FILTRAR DOCUMENTOS QUE SEAN TXT XML ..... (Actualmente solo se filtran *.txt)
+            List<File> fileList = compareAllFiles(directoryLocal);
 
             for (Document documentoDb : documentsDb) {
                 for (File Localfile : fileList) {
@@ -200,6 +199,12 @@ public class DocumentsDAO implements InterfaceDAO {
             Path resolvedPath = repoPath.resolve(secondPath);
 
             File localFile = new File(resolvedPath.toString());
+
+            if (!localFile.exists()) {
+                System.out.println("ERROR: El archivo local no existe.\n");
+                return;
+            }
+
             Document documentLocal = fileToDocument(localFile);
 
             Document query = new Document("path", resolvedPath.toString());
