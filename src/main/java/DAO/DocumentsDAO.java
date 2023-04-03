@@ -63,11 +63,6 @@ public class DocumentsDAO implements InterfaceDAO {
      */
     @Override
     public void createRepository(String ruta) {
-        /**
-         * TODO Eliminar cuando la creacion de la BD este implementada
-         */
-        repository = connection.getDatabase("GETBD");
-
         System.out.println("Creant repositori...");
         //Comproba si la ruta indicada per l'usuari existeix localment
         Path userPath = Paths.get(ruta);
@@ -75,7 +70,7 @@ public class DocumentsDAO implements InterfaceDAO {
             //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
             if (ruta.matches("^[A-Za-z]:\\" + fileSeparator + ".*")) {
                 ruta = ruta.substring(3);
-            } else if (ruta.startsWith(fileSeparator)) {
+            } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
                 ruta = ruta.substring(1);
             }
 
@@ -83,27 +78,35 @@ public class DocumentsDAO implements InterfaceDAO {
             ruta = ruta.replace(fileSeparator, "_");
             setRepositoryName(ruta);
             //Comprobem si la col·lecció ja existeix
-            boolean collectionExists = repository.listCollectionNames()
-                    .into(new ArrayList<>()).contains(ruta);
-            if (collectionExists) {
-                System.out.println("ERROR: Aquest repositori ja existeix.");
-            } else {
-                //Crea el nou repositori amb el nom de la ruta processada
-                repository.getCollection(ruta);
-                System.out.println("Repositori creat correctament.");
+            boolean collectionExists;
+            try {
                 /**
-                 * TODO Codigo para que la coleccion sea creada forzadamente,
-                 * eliminar antes de subir la practica
+                 * TODO Eliminar conexióncuando la creacion de la BD este implementada
                  */
-                Document del = new Document();
-                del.append("1", "del");
-                repository.getCollection(ruta).insertOne(del);
-                repository.getCollection(ruta).deleteOne(del);
+                repository = connection.getDatabase("GETDB");
+                collectionExists = repository.listCollectionNames()
+                        .into(new ArrayList<>()).contains(ruta);
+                if (collectionExists) {
+                    System.out.println("ERROR: Aquest repositori ja existeix.");
+                } else {
+                    //Crea el nou repositori amb el nom de la ruta processada
+                    repository.getCollection(ruta);
+                    System.out.println("Repositori creat correctament.");
+                    /**
+                     * TODO Codigo para que la coleccion sea creada
+                     * forzadamente, eliminar antes de subir la practica
+                     */
+                    Document del = new Document();
+                    del.append("1", "del");
+                    repository.getCollection(ruta).insertOne(del);
+                    repository.getCollection(ruta).deleteOne(del);
+                }
+            } catch (MongoException ex) {
+                System.out.println("Error: " + ex.getMessage());
             }
         } else {
             System.out.println("La ruta no existeix localment.");
         }
-
     }
 
     /**
@@ -123,14 +126,16 @@ public class DocumentsDAO implements InterfaceDAO {
             boolean collectionExists = repository.listCollectionNames()
                     .into(new ArrayList<>()).contains(repositori);
             if (collectionExists) {
-                MongoCollection<Document> coleccio = repository.getCollection(repositori);
-                coleccio.drop();
+                MongoCollection<Document> repositoryCollection = repository
+                        .getCollection(repositori);
+                repositoryCollection.drop();
+                System.out.println("Repositori eliminat correctament.");
             } else {
                 System.out.println("El repositori "
                         + repositori + " no existeix.");
             }
         } catch (MongoException ex) {
-            System.out.println("Excepció: " + ex);
+            System.out.println("Excepció: " + ex.getMessage());
         }
     }
 
