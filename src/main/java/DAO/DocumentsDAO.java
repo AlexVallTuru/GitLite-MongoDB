@@ -68,14 +68,14 @@ public class DocumentsDAO implements InterfaceDAO {
         Path userPath = Paths.get(ruta);
         if (Files.exists(userPath)) {
             //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
-            if (ruta.matches("^[A-Za-z]:\\" + fileSeparator + ".*")) {
+            if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
                 ruta = ruta.substring(3);
             } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
                 ruta = ruta.substring(1);
             }
 
             //Canvia els separadors de ruta per _
-            ruta = ruta.replace(fileSeparator, "_");
+            ruta = ruta.replaceAll("[/\\\\]", "_");
             setRepositoryName(ruta);
             //Comprobem si la col·lecció ja existeix
             boolean collectionExists;
@@ -83,14 +83,13 @@ public class DocumentsDAO implements InterfaceDAO {
                 /**
                  * TODO Eliminar conexióncuando la creacion de la BD este implementada
                  */
-                repository = connection.getDatabase("GETDB");
-                collectionExists = repository.listCollectionNames()
+                collectionExists = db.listCollectionNames()
                         .into(new ArrayList<>()).contains(ruta);
                 if (collectionExists) {
                     System.out.println("ERROR: Aquest repositori ja existeix.");
                 } else {
                     //Crea el nou repositori amb el nom de la ruta processada
-                    repository.getCollection(ruta);
+                    db.getCollection(ruta);
                     System.out.println("Repositori creat correctament.");
                     /**
                      * TODO Codigo para que la coleccion sea creada
@@ -98,8 +97,8 @@ public class DocumentsDAO implements InterfaceDAO {
                      */
                     Document del = new Document();
                     del.append("1", "del");
-                    repository.getCollection(ruta).insertOne(del);
-                    repository.getCollection(ruta).deleteOne(del);
+                    db.getCollection(ruta).insertOne(del);
+                    db.getCollection(ruta).deleteOne(del);
                 }
             } catch (MongoException ex) {
                 System.out.println("Error: " + ex.getMessage());
