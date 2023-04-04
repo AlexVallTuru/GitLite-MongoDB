@@ -14,6 +14,7 @@ import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -26,9 +27,10 @@ import org.bson.Document;
 
 import static Singleton.MongoConnection.*;
 import static Utils.Ficheros.*;
-import static Utils.Utils.documentToFile;
-import static Utils.Utils.fileToDocument;
+import static Utils.Utils.*;
+
 import java.nio.file.NoSuchFileException;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -177,24 +179,38 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void compareFiles(String inputPathfile, boolean containsDetails) throws Exception {
+    public void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+
+        //TODO - ACTUALMENTE SE COMPARAN LOS ARCHIVOS QUE ESTAN EN LA BASE DE DATOS Y EN REMOTO, SE TIENE QUE APLICAR
+        //TODO - QUE TAMBIEN COMPARE LOS QUE NO EXISTAN Y TE MUESTRE LA INFORMACION DE El fitxer remot no existeix // El fitxer local no existeix.
 
         if (inputPathfile.isEmpty()) {
 
-            MongoCursor<Document> allFilesDb = collection.find().iterator();
+            MongoCursor<Document> allFilesDb = collection.find(
+                    new Document("extensio", new Document("$in", retornarExtension()))
+            ).iterator();
             ArrayList<Document> documentsDb = new ArrayList<>();
             while (allFilesDb.hasNext()) {
                 documentsDb.add(allFilesDb.next());
             }
             File directoryLocal = new File(getRepositoryPath().toUri());
-            //TODO FILTRAR DOCUMENTOS QUE SEAN TXT XML ..... (Actualmente solo se filtran *.txt)
             List<File> fileList = compareAllFiles(directoryLocal);
 
             for (Document documentoDb : documentsDb) {
                 for (File Localfile : fileList) {
-                    if (documentoDb.getString("nom").equals(Localfile.getName())) {
-                        System.out.print(Localfile.getName() + " " + documentoDb.getString("nom") + "\n");
-                        compareTwoFiles(fileToDocument(Localfile),documentoDb,containsDetails);
+                    if (documentoDb.getString("path").equals(formatPath(Localfile.getPath()))) {
+                        if (detailLocalORemoto && containsDetails) {
+                            System.out.print("Comparación del archivo " + Localfile.getName() + " (local a remoto).\n");
+                        } else if ((!detailLocalORemoto) && containsDetails) {
+                            System.out.print("Comparación del archivo " + Localfile.getName() + " (remoto a local).\n");
+                        } else{
+                            System.out.print("Comparación del archivo " + Localfile.getName() + " (local a remoto).\n");
+                        }
+                        try {
+                            compareTwoFiles(fileToDocument(Localfile),documentoDb,containsDetails, detailLocalORemoto);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
                     }
                 }
             }
@@ -210,12 +226,22 @@ public class DocumentsDAO implements InterfaceDAO {
                 return;
             }
 
-            Document documentLocal = fileToDocument(localFile);
+            Document documentLocal = null;
+            try {
+                documentLocal = fileToDocument(localFile);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-            Document query = new Document("path", resolvedPath.toString());
+            Document query = new Document("path", resolvedPath.toString())
+                    .append("extensio", new Document("$in", retornarExtension()));
             Document documentoDb = collection.find(query).first();
-
-            compareTwoFiles(documentLocal,documentoDb,containsDetails);
+            if(detailLocalORemoto){
+                System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
+            }else {
+                System.out.print("Comparación del archivo " + localFile.getName() + " (remoto a local).\n");
+            }
+            compareTwoFiles(documentLocal,documentoDb,containsDetails, detailLocalORemoto);
         }
     }
     

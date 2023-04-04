@@ -88,20 +88,32 @@ public class Menus {
 
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: ");
+        System.out.println("Indicar ruta: \n" +
+                "(En caso de dejarlo vacio se mostrara el \ncontenido del repositorio " + MongoConnection.getRepositoryName() + ")");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
         String resultado = in.nextLine();
-        boolean containsDetails = false;
+        String detailsLocalORemot;
 
         if (resultado.equalsIgnoreCase("s")) {
-            logica.compareFiles(ruta, true);
+            System.out.println("Quieres mostrar los detalles de local a remoto o viceversa? (l/r)");
+            detailsLocalORemot = in.nextLine();
         } else if (resultado.equalsIgnoreCase("n")) {
-            logica.compareFiles(ruta, false);
+            detailsLocalORemot = "n"; // Establecer una opción por defecto
         } else {
-            System.out.print("\nIntroduce una opcion valida\n");
+            System.out.println("Introduce una opción válida.");
+            return; // Salir del método si la opción no es válida
         }
 
+        if (detailsLocalORemot.equalsIgnoreCase("l")) {
+            logica.compareFiles(ruta, true, true);
+        } else if (detailsLocalORemot.equalsIgnoreCase("r")) {
+            logica.compareFiles(ruta, true, false);
+        } else if (detailsLocalORemot.equalsIgnoreCase("n")) {
+            logica.compareFiles(ruta, false, false);
+        } else {
+            System.out.println("Introduce una opción válida.");
+        }
     }
 
     public static void menuClone() {

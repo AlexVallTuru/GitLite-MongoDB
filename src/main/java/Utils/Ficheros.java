@@ -84,7 +84,7 @@ public class Ficheros {
         return (ArrayList<File>) lista;
     }
 
-    public static void compareTwoFiles(Document localDoc, Document dbDoc, Boolean containsDetails) {
+    public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean  detailLocalORemoto) {
 
         try {
             if (compareTwoTimeStamp(localDoc,dbDoc)) {
@@ -93,7 +93,7 @@ public class Ficheros {
                 System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
             } else {
                 if (containsDetails) {
-                    compareLines(localDoc, dbDoc);
+                    compareLines(localDoc, dbDoc, detailLocalORemoto);
                 } else {
                     System.out.println("Son distintos\n\n");
                 }
@@ -121,11 +121,18 @@ public class Ficheros {
         System.out.println(d.equals(c.getDate("modificacio")));
     }
 
-    public static void compareLines(Document doc1, Document doc2) throws IOException {
+    public static void compareLines(Document doc1, Document doc2, boolean detailLocalORemoto) throws IOException {
 
         int contadorDeLineas1 = 0;
-        ArrayList<String> lineas1 = docToArrayListLines(doc1);
-        ArrayList<String> lineas2 = docToArrayListLines(doc2);
+        ArrayList<String> lineas1 = null;
+        ArrayList<String> lineas2 = null;
+        if (detailLocalORemoto) {
+            lineas1 = docToArrayListLines(doc1);
+            lineas2 = docToArrayListLines(doc2);
+        } else {
+            lineas1 = docToArrayListLines(doc2);
+            lineas2 = docToArrayListLines(doc1);
+        }
         int contadorLineasIguales = 0;
             for (String linea1 : lineas1) {
 

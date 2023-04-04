@@ -21,7 +21,7 @@ public interface InterfaceLogica {
 
     File pullFile(String file);
 
-    void compareFiles(String file, boolean containsDetails);
+    void compareFiles(String file, boolean containsDetails,boolean detailLocalORemoto);
     
     void cloneRepository(String file, String date);
     
