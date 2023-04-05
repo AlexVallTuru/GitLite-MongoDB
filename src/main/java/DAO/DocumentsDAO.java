@@ -66,39 +66,41 @@ public class DocumentsDAO implements InterfaceDAO {
         System.out.println("Creant repositori...");
         //Comproba si la ruta indicada per l'usuari existeix localment
         Path userPath = Paths.get(ruta);
+        String nomRepo = "";
+        
         if (Files.exists(userPath)) {
             //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
             if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
-                ruta = ruta.substring(3);
+                nomRepo = ruta.substring(3);
+                
             } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
-                ruta = ruta.substring(1);
+                nomRepo = ruta.substring(1);
             }
 
             //Canvia els separadors de ruta per _
-            ruta = ruta.replaceAll("[/\\\\]", "_");
-            setRepositoryName(ruta);
+            nomRepo = nomRepo.replaceAll("[/\\\\]", "_");
+            //Emmagatzemar nom i ruta del repositori al singleton
+            setRepositoryName(nomRepo);
+            setRepositoryPath(Paths.get(ruta));
+            
             //Comprobem si la col·lecció ja existeix
             boolean collectionExists;
             try {
-                /**
-                 * TODO Eliminar conexióncuando la creacion de la BD este implementada
-                 */
                 collectionExists = db.listCollectionNames()
-                        .into(new ArrayList<>()).contains(ruta);
+                        .into(new ArrayList<>()).contains(repoName);
+                
                 if (collectionExists) {
                     System.out.println("ERROR: Aquest repositori ja existeix.");
+                    
                 } else {
                     //Crea el nou repositori amb el nom de la ruta processada
-                    db.getCollection(ruta);
+                    db.getCollection(repoName);
                     System.out.println("Repositori creat correctament.");
-                    /**
-                     * TODO Codigo para que la coleccion sea creada
-                     * forzadamente, eliminar antes de subir la practica
-                     */
+                    
+                    //Inserta un document amb la ruta del repositori
                     Document del = new Document();
-                    del.append("1", "del");
-                    db.getCollection(ruta).insertOne(del);
-                    db.getCollection(ruta).deleteOne(del);
+                    del.append("ruta", repoPath);
+                    db.getCollection(repoName).insertOne(del);
                 }
             } catch (MongoException ex) {
                 System.out.println("Error: " + ex.getMessage());

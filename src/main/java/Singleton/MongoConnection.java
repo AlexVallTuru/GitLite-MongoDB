@@ -16,9 +16,9 @@ public class MongoConnection {
     private static String repositoryFolder;
     private static MongoClient client;
     private static MongoConnection mongoClient;
-    private static String repositoryName;
-    private static Path repositoryPath;
     private static MongoDatabase dataBase;
+    private String repositoryName;
+    private Path repositoryPath;
 
     private static MongoCollection<Document> collection;
 
@@ -28,9 +28,9 @@ public class MongoConnection {
         this.dataBase = client.getDatabase("GETBD");
 
         //CODIGO HARDCODEADO - SE TIENE QUE IMPLEMENTAR A TRAVES DE FUNCIONES
-        this.repositoryName = "Users_avall_Desktop";
-        this.repositoryPath = Paths.get("\\Users\\avall\\Desktop\\");
-        this.collection = dataBase.getCollection(repositoryName);
+//        this.repositoryName = "Users_avall_Desktop";
+//        this.repositoryPath = Paths.get("\\Users\\avall\\Desktop\\");
+//        this.collection = dataBase.getCollection(repositoryName);
     }
 
     public static MongoClient getInstance() {
@@ -44,14 +44,14 @@ public class MongoConnection {
         repositoryFolder = repository;
     }
 
-    public static void setRepositoryName(String repositoryName) {
-        repositoryName = repositoryName;
+    public void setRepositoryName(String repositoryName) {
+        this.repositoryName = repositoryName;
     }
 
-    public static void setRepositoryPath(Path repositoryPath) {
+    public void setRepositoryPath(Path repositoryPath) {
         //Identificar el sistema operativo y en base a esto introducir
         //una barra inicial acompañada de otras que substituyan la barrabaja
-        repositoryPath = repositoryPath;
+        this.repositoryPath = repositoryPath;
     }
 
     public static String getRepository() {
@@ -62,11 +62,11 @@ public class MongoConnection {
         return dataBase;
     }
 
-    public static Path getRepositoryPath() {
+    public Path getRepositoryPath() {
         return repositoryPath;
     }
 
-    public static String getRepositoryName() {
+    public String getRepositoryName() {
         return repositoryName;
     }
 
