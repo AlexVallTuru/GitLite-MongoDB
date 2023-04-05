@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.*;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -30,8 +30,6 @@ import static Utils.Ficheros.*;
 import static Utils.Utils.*;
 
 import java.nio.file.NoSuchFileException;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  *
@@ -181,68 +179,91 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
 
-        //TODO - ACTUALMENTE SE COMPARAN LOS ARCHIVOS QUE ESTAN EN LA BASE DE DATOS Y EN REMOTO, SE TIENE QUE APLICAR
-        //TODO - QUE TAMBIEN COMPARE LOS QUE NO EXISTAN Y TE MUESTRE LA INFORMACION DE El fitxer remot no existeix // El fitxer local no existeix.
-
         if (inputPathfile.isEmpty()) {
+            compararMultiplesArchivos(inputPathfile,containsDetails,detailLocalORemoto);
+        } else {
+            compararUnicoArchivo(inputPathfile,containsDetails,detailLocalORemoto);
+        }
+    }
+    public void compararMultiplesArchivos (String inputPathfile, boolean containsDetails, boolean detailLocalORemoto){
 
-            MongoCursor<Document> allFilesDb = collection.find(
-                    new Document("extensio", new Document("$in", retornarExtension()))
-            ).iterator();
-            ArrayList<Document> documentsDb = new ArrayList<>();
-            while (allFilesDb.hasNext()) {
-                documentsDb.add(allFilesDb.next());
-            }
-            File directoryLocal = new File(getRepositoryPath().toUri());
-            List<File> fileList = compareAllFiles(directoryLocal);
+        MongoCursor<Document> allFilesDb = collection.find(
+                new Document("extensio", new Document("$in", retornarExtension()))
+        ).iterator();
+        ArrayList<Document> documentsDb = new ArrayList<>();
+        while (allFilesDb.hasNext()) {
+            documentsDb.add(allFilesDb.next());
+        }
+        File directoryLocal = new File(getRepositoryPath().toUri());
+        List<File> fileList = compareAllFiles(directoryLocal);
+        ArrayList<String> archivosNoEncontrados = new ArrayList<>();
+        ArrayList<String> archivosEncontrados = new ArrayList<>();
 
+        if(detailLocalORemoto){
+            //DE LOCAL A REMOTO
             for (Document documentoDb : documentsDb) {
-                for (File Localfile : fileList) {
-                    if (documentoDb.getString("path").equals(formatPath(Localfile.getPath()))) {
-                        if (detailLocalORemoto && containsDetails) {
-                            System.out.print("Comparación del archivo " + Localfile.getName() + " (local a remoto).\n");
-                        } else if ((!detailLocalORemoto) && containsDetails) {
-                            System.out.print("Comparación del archivo " + Localfile.getName() + " (remoto a local).\n");
-                        } else{
-                            System.out.print("Comparación del archivo " + Localfile.getName() + " (local a remoto).\n");
-                        }
+                for (File localFile : fileList) {
+                    if (formatPath(localFile.getPath()).equals(documentoDb.getString("path"))) {
+                        archivosEncontrados.add(localFile.getName());
+                        System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
                         try {
-                            compareTwoFiles(fileToDocument(Localfile),documentoDb,containsDetails, detailLocalORemoto);
+                            compareTwoFiles(fileToDocument(localFile),documentoDb,containsDetails, detailLocalORemoto);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
+                    }else{
+                        archivosNoEncontrados.add(localFile.getName());
                     }
                 }
             }
-
-        } else {
-            Path secondPath = Paths.get(inputPathfile);
-            Path resolvedPath = repoPath.resolve(secondPath);
-
-            File localFile = new File(resolvedPath.toString());
-
-            if (!localFile.exists()) {
-                System.out.println("ERROR: El archivo local no existe.\n");
-                return;
+        }else {
+            //DE REMOTO A LOCAL
+            for (File localFile : fileList) {
+                for (Document documentoDb : documentsDb) {
+                    if (documentoDb.getString("path").equals(formatPath(localFile.getPath()))) {
+                        archivosEncontrados.add(documentoDb.getString("nom"));
+                        System.out.print("Comparación del archivo " + documentoDb.getString("nom") + " (remoto a local).\n");
+                        try {
+                            compareTwoFiles(fileToDocument(localFile),documentoDb,containsDetails, detailLocalORemoto);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }else{
+                        archivosNoEncontrados.add(documentoDb.getString("nom"));
+                    }
+                }
             }
-
-            Document documentLocal = null;
-            try {
-                documentLocal = fileToDocument(localFile);
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-
-            Document query = new Document("path", resolvedPath.toString())
-                    .append("extensio", new Document("$in", retornarExtension()));
-            Document documentoDb = collection.find(query).first();
-            if(detailLocalORemoto){
-                System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
-            }else {
-                System.out.print("Comparación del archivo " + localFile.getName() + " (remoto a local).\n");
-            }
-            compareTwoFiles(documentLocal,documentoDb,containsDetails, detailLocalORemoto);
         }
+        Ficheros.archivosNoEcontrados(archivosNoEncontrados,archivosEncontrados,detailLocalORemoto);
+    }
+
+    public void compararUnicoArchivo(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto){
+        Path secondPath = Paths.get(inputPathfile);
+        Path resolvedPath = repoPath.resolve(secondPath);
+
+        File localFile = new File(resolvedPath.toString());
+
+        if (!localFile.exists()) {
+            System.out.println("ERROR: El archivo local no existe.\n");
+            return;
+        }
+
+        Document documentLocal;
+        try {
+            documentLocal = fileToDocument(localFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Document query = new Document("path", resolvedPath.toString())
+                .append("extensio", new Document("$in", retornarExtension()));
+        Document documentoDb = collection.find(query).first();
+        if(detailLocalORemoto){
+            System.out.print("\nComparación del archivo " + localFile.getName() + " (local a remoto).\n");
+        }else {
+            System.out.print("\nComparación del archivo " + localFile.getName() + " (remoto a local).\n");
+        }
+        compareTwoFiles(documentLocal,documentoDb,containsDetails, detailLocalORemoto);
     }
     
     @Override

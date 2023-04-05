@@ -12,15 +12,13 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 import org.bson.Document;
 
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
-import java.util.Arrays;
-import java.util.Scanner;
 
 /**
  *
@@ -216,5 +214,21 @@ public class Ficheros {
             lineas.add(line);
         }
         return lineas;
+    }
+
+    public static void archivosNoEcontrados(ArrayList<String> archivosNoEncontrados, ArrayList<String> archivosEncontrados, boolean detailLocalORemoto){
+        Set<String> setNombres = new HashSet<>(archivosNoEncontrados);
+        archivosNoEncontrados.clear();
+        archivosNoEncontrados.addAll(setNombres);
+        archivosNoEncontrados.removeAll(archivosEncontrados);
+        String archivosNoEncontradosStr = String.join(", ", archivosNoEncontrados);
+        if(archivosNoEncontrados.isEmpty()){
+            System.out.print("No hay mas archivos a comparar.\n\n");
+        }
+        else if (detailLocalORemoto) {
+            System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en remoto.\n\n");
+        }else{
+            System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en local.\n\n");
+        }
     }
 }

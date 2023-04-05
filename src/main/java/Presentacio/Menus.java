@@ -88,21 +88,21 @@ public class Menus {
 
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: \n" +
-                "(En caso de dejarlo vacio se mostrara el \ncontenido del repositorio " + MongoConnection.getRepositoryName() + ")");
+        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n" +
+                "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + MongoConnection.getRepositoryName() + ".");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
         String resultado = in.nextLine();
         String detailsLocalORemot;
 
         if (resultado.equalsIgnoreCase("s")) {
-            System.out.println("Quieres mostrar los detalles de local a remoto o viceversa? (l/r)");
+            System.out.println("Quieres comparar de local a remoto o viceversa? (l/r)");
             detailsLocalORemot = in.nextLine();
         } else if (resultado.equalsIgnoreCase("n")) {
             detailsLocalORemot = "n"; // Establecer una opción por defecto
         } else {
-            System.out.println("Introduce una opción válida.");
-            return; // Salir del método si la opción no es válida
+            System.out.println("Introduce una opción válida, por favor.");
+            return;
         }
 
         if (detailsLocalORemot.equalsIgnoreCase("l")) {
@@ -110,7 +110,7 @@ public class Menus {
         } else if (detailsLocalORemot.equalsIgnoreCase("r")) {
             logica.compareFiles(ruta, true, false);
         } else if (detailsLocalORemot.equalsIgnoreCase("n")) {
-            logica.compareFiles(ruta, false, false);
+            logica.compareFiles(ruta, false, true);
         } else {
             System.out.println("Introduce una opción válida.");
         }
