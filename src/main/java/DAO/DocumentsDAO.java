@@ -24,7 +24,7 @@ public class DocumentsDAO implements InterfaceDAO {
     String userHome = System.getProperty("user.home");
     String userFolder = "getRepo1";
     String repositoryName = null;
-    MongoClient connection = MongoConnection.getInstance();
+    MongoClient connection = MongoConnection.getInstance().getDBClient();
     MongoDatabase repository = null;
     String idRemot = null;
 
@@ -41,17 +41,17 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void pushFile(String file, String force) {
+    public void pushFile(String file, Boolean force) {
         
-        MongoDatabase repository = MongoConnection.getDB();
-                
+        MongoDatabase repository = MongoConnection.getInstance().getDB();
+        File v = new File(file);       
         try {
             if (repository != null) {
-                MongoCollection<Document> doc = repository.getCollection(repositoryName);
+                MongoCollection<Document> doc = repository.getCollection(Utils.generateRepositoryName(v));
                 File fichero = new File(file);
                 Document don = Utils.fileToDocument(fichero);
                 
-                if (force.equals("1")) {
+                if (force) {
 
                     doc.insertOne(don);
 

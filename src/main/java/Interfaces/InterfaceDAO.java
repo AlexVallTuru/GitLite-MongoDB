@@ -14,7 +14,7 @@ public interface InterfaceDAO {
     
     void createRepository(String ruta);
     void dropRepository(String repository);
-    void pushFile(String file,String force);
+    void pushFile(String file,Boolean force);
     void pullFile(String file);
     void compareFiles(String file);
     void cloneRepository(String file);

@@ -19,8 +19,8 @@ import java.util.List;
 public class MenuDAO {
     
     public static void repositoryList(){
-        MongoClient mc = MongoConnection.getInstance();
-        MongoDatabase bbdd = mc.getDatabase("GETDB");
+        MongoClient mc = MongoConnection.getInstance().getDBClient();
+        MongoDatabase bbdd = MongoConnection.getInstance().getDB();
         MongoIterable<String> v = bbdd.listCollectionNames();
         List<String> f = v.into(new ArrayList<String>());
         f.forEach(n -> System.out.println(n));

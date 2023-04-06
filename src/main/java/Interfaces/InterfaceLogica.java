@@ -16,7 +16,7 @@ public interface InterfaceLogica {
 
     void dropRepository(String repository);
 
-    void pushFile(String file,String force);
+    void pushFile(String file,Boolean force);
 
     File pullFile(String file);
 

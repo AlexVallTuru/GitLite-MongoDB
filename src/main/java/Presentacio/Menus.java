@@ -6,7 +6,9 @@ package Presentacio;
 
 import DAO.MenuDAO;
 import Logica.DocumentsLogica;
+import Logica.MenuLogica;
 import Singleton.MongoConnection;
+import Utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
@@ -19,7 +21,7 @@ import java.util.Scanner;
 public class Menus {
 
     private static DocumentsLogica logica = new DocumentsLogica();
-    private static MongoClient connection = MongoConnection.getInstance();
+    private static MongoConnection connection = MongoConnection.getInstance();
     private static MongoDatabase repository = null;
     private static File rem = null;
     private static String ruta = System.getProperty("user.home");
@@ -53,7 +55,12 @@ public class Menus {
             System.out.println("Indicar ruta: ");
             String ruta = in.nextLine();
             logica.createRepository(ruta);
-            Menus.menuPrincipal();
+            
+           int op =0; 
+           while(op!= 5){
+               op=Menus.menuPrincipal();
+               MenuLogica.repositoryOptions(op);
+           }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -99,8 +106,8 @@ public class Menus {
         Scanner in = new Scanner(System.in);
         System.out.println("[Indicar ruta]: ");
         String ruta = in.nextLine();
-        System.out.println("[Vols forçar?]: ");
-        String force = in.nextLine();
+        System.out.println("[Vols forçar?]: [S/N] ");
+        Boolean force = Utils.verificaOpcio(in.nextInt());
         logica.pushFile(ruta, force);
 
     }

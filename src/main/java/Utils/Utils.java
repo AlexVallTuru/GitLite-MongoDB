@@ -8,7 +8,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Date;
+
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.Scanner;
 import org.bson.Document;
 
 /**
@@ -17,7 +20,6 @@ import org.bson.Document;
  */
 public class Utils {
 
-  
     public static String getAbsolutePath(File file) {
         Path path = file.toPath().toAbsolutePath();
 
@@ -34,17 +36,40 @@ public class Utils {
                 .append("nom", nom_i_extensio[0])
                 .append("extensio", nom_i_extensio[1])
                 .append("tamany", Files.size(file.toPath()))
-                .append("modificacio", new Date(file.lastModified()))
+                .append("modificacio", Utils.convertToTimeStamp(new Date(file.lastModified())))
                 .append("contingut", Ficheros.llegir(file));
 
         return doc;
 
     }
-    
-    public  static String generateRepositoryName(File file){
+
+    public static String generateRepositoryName(File file) {
         String path = file.toString().substring(3).replace("\\", "_");
         return path;
-        
+
+    }
+
+    public static Boolean verificaOpcio(int opcio) {
+        Scanner in = new Scanner(System.in);
+        while (opcio != 1 && opcio != 2) {
+            System.out.println("Opcio no valida");
+            opcio = in.nextInt();
+
+        }
+        if(opcio == 1){
+            return true;
+        }else{
+            return false;
+        }
+       
+    
+    }
+    
+    public static Timestamp convertToTimeStamp(Date date){
+        if(date!= null){
+            return new Timestamp(date.getTime());
+        }
+        return null;
     }
 
 }

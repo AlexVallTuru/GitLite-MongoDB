@@ -20,17 +20,21 @@ public class MongoConnection {
 
     }
 
-    public static MongoClient getInstance() {
+    public static MongoConnection getInstance() {
         if (mongoClient == null) {
             mongoClient = new MongoConnection();
 
         }
-        return client;
+        return mongoClient;
 
     }
 
-    public static MongoDatabase getDB() {
+    public MongoDatabase getDB() {
         return bbdd;
+    }
+
+    public MongoClient getDBClient() {
+        return client;
     }
 
 }

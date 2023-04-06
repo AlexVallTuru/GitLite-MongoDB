@@ -36,7 +36,7 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void pushFile(String file,String force) {
+    public void pushFile(String file,Boolean force) {
         try {
             dao.pushFile(file,force);
         } catch (Exception e) {
