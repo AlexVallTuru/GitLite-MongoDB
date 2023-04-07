@@ -4,14 +4,15 @@
  */
 package Utils;
 
+import Singleton.MongoConnection;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
 import java.sql.Timestamp;
-import java.util.Date;
 import java.util.Scanner;
+import java.util.Date;
 import org.bson.Document;
 
 /**
@@ -28,11 +29,13 @@ public class Utils {
     }
 
     public static Document fileToDocument(File file) throws IOException {
+        MongoConnection c = MongoConnection.getInstance();
+        Path path = c.getRepositoryPath();
         String[] nom_i_extensio = file.getName().split("\\.");
-
+        String filePath = Ficheros.getAbsolutePath(path, file);
         Document doc = new Document();
         doc
-                .append("path", file.getAbsolutePath().substring(2))
+                .append("path", filePath)
                 .append("nom", nom_i_extensio[0])
                 .append("extensio", nom_i_extensio[1])
                 .append("tamany", Files.size(file.toPath()))
@@ -40,7 +43,6 @@ public class Utils {
                 .append("contingut", Ficheros.llegir(file));
 
         return doc;
-
     }
 
     public static String generateRepositoryName(File file) {
@@ -56,20 +58,54 @@ public class Utils {
             opcio = in.nextInt();
 
         }
-        if(opcio == 1){
+        if (opcio == 1) {
             return true;
-        }else{
+        } else {
             return false;
         }
-       
-    
+
     }
-    
-    public static Timestamp convertToTimeStamp(Date date){
-        if(date!= null){
+
+    public static Timestamp convertToTimeStamp(Date date) {
+        if (date != null) {
             return new Timestamp(date.getTime());
         }
         return null;
+    }
+
+    public static File documentToFile(Document document) throws IOException {
+        String path = document.getString("path");
+        String nom = document.getString("nom");
+        String extensio = document.getString("extensio");
+        long tamany = document.getLong("tamany");
+        Date modificacio = document.getDate("modificacio");
+        byte[] contingut = document.getString("contingut").getBytes();
+
+        File file = new File(path);
+        FileOutputStream fos = new FileOutputStream(file);
+        fos.write(contingut);
+        fos.close();
+
+        // Establecer la fecha de modificación del archivo
+        file.setLastModified(modificacio.getTime());
+
+        return file;
+    }
+
+    public static void crearRuta(File destination, File fname,Boolean force) throws IOException {
+        if (destination.mkdirs()) {
+            System.out.println("Nueva ruta creada");
+            fname.createNewFile();
+        } else {
+            System.out.println("La ruta ya existe");
+            if (fname.exists()) {
+                if(force){
+                    fname.createNewFile();
+                }
+            }
+            
+
+        }
     }
 
 }

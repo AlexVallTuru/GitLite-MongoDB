@@ -45,9 +45,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public File pullFile(String file) {
+    public File pullFile(String file,Boolean force) {
         try {
-            //return dao.pullFile(file);
+            dao.pullFile(file,force);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -55,18 +55,18 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void compareFiles(String file) {
+    public void compareFiles(String file, boolean containsDetails) {
         try {
-            dao.compareFiles(file);
+            dao.compareFiles(file,containsDetails);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void cloneRepository(String file) {
+    public void cloneRepository(String file, String date) {
         try {
-            dao.cloneRepository(file);
+            dao.cloneRepository(file, date);
         } catch (Exception e) {
             e.printStackTrace();
         }

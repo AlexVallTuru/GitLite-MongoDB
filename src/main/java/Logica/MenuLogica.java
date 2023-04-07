@@ -20,9 +20,13 @@ public class MenuLogica {
                 case 2 ->
                     Menus.menuPush();
                 case 3 ->
-                    Menus.menuCompare();
+                    Menus.menuPull();
                 case 4 ->
+                    Menus.menuCompare();
+                case 5 ->
                     Menus.menuClone();
+                case 6 ->
+                    Menus.menuAyuda();
 
             }
 
@@ -31,17 +35,15 @@ public class MenuLogica {
         }
 
     }
-    
-        public static void getInitialOption(int option) {
+
+    public static void getInitialOption(int option) {
         try {
             switch (option) {
                 case 1 ->
                     Menus.menuCreate();
-                    
-                    
+
                 case 2 ->
                     Menus.selectRepository();
-
 
             }
 
@@ -51,4 +53,26 @@ public class MenuLogica {
 
     }
 
+    public static void getOptionAyuda(int option) {
+        try {
+            switch (option) {
+                case 1 ->
+                    Menus.menuCreateAyuda();
+                case 2 ->
+                    Menus.menuDropAyuda();
+                case 3 ->
+                    Menus.menuPushAyuda();
+                case 4 ->
+                    Menus.menuCompareAyuda();
+                case 5 ->
+                    Menus.menuCloneAyuda();
+                case 6 ->
+                    Menus.menuPrincipal();
+            }
+
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+
+    }
 }

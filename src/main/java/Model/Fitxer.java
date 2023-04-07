@@ -4,10 +4,7 @@
  */
 package Model;
 
-import Utils.Ficheros;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import org.bson.Document;
 
 /**
@@ -21,17 +18,19 @@ public class Fitxer {
     private String extensio;
     private Long tamany;
     private String contingut;
+    private String parent;
 
     public Fitxer() {
 
     }
 
-    public Fitxer(String filePath, String nomFitxer, String extensio, Long tamany, String contingut) {
+    public Fitxer(String filePath, String nomFitxer, String extensio, Long tamany, String contingut,String parent) {
         this.filePath = filePath;
         this.nomFitxer = nomFitxer;
         this.extensio = extensio;
         this.tamany = tamany;
         this.contingut = contingut;
+        this.parent=parent;
     }
 
     public String getFilePath() {
@@ -73,23 +72,30 @@ public class Fitxer {
     public void setContingut(String contingut) {
         this.contingut = contingut;
     }
+    
+    public String getParentPath() {
+        return parent;
+    }
 
-    public Fitxer documentToObject(Document doc) {
+    public void setParentPath(String contingut) {
+        this.parent = contingut;
+    }
+
+    public Fitxer documentToObject(Document doc,String path) {
 
         Fitxer fitxer = new Fitxer();
-
-        fitxer.setNomFitxer(nomFitxer);
-        fitxer.setTamany(tamany);
-        fitxer.setFilePath(filePath);
-        fitxer.setExtensio(extensio);
-        fitxer.setContingut(contingut);
-
+        fitxer.setNomFitxer(doc.getString("nom"));
+        fitxer.setTamany(doc.getLong("tamany"));
+        fitxer.setFilePath(path);
+        fitxer.setExtensio(doc.getString("extensio"));
+        fitxer.setContingut(doc.getString("contingut"));
+        fitxer.setParentPath(new File(path).getParent());
         return fitxer;
     }
 
     @Override
     public String toString() {
-        return "Fitxer{" + "filePath=" + filePath + ", nomFitxer=" + nomFitxer + ", extensio=" + extensio + ", tamany=" + tamany + ", contingut=" + contingut + '}';
+        return String.format("Nom: %s\nTamany: %s\nPath: %s\nExtensio: %s\nParent: %s\nContingut: \n%s",nomFitxer,tamany,filePath,extensio,parent,contingut);
     }
 
 }

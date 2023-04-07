@@ -6,7 +6,6 @@ package DAO;
 
 import Singleton.MongoConnection;
 import com.mongodb.MongoClient;
-import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import java.util.ArrayList;
@@ -20,7 +19,7 @@ public class MenuDAO {
     
     public static void repositoryList(){
         MongoClient mc = MongoConnection.getInstance().getDBClient();
-        MongoDatabase bbdd = MongoConnection.getInstance().getDB();
+        MongoDatabase bbdd = MongoConnection.getInstance().getDataBase();
         MongoIterable<String> v = bbdd.listCollectionNames();
         List<String> f = v.into(new ArrayList<String>());
         f.forEach(n -> System.out.println(n));
