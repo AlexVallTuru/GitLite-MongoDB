@@ -26,6 +26,7 @@ import org.bson.Document;
 import static Utils.Ficheros.*;
 import static Utils.Utils.fileToDocument;
 import com.mongodb.client.model.Filters;
+import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
 import java.util.List;
@@ -65,49 +66,46 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void createRepository(String ruta) {
         System.out.println("Creant repositori...");
-        //Comproba si la ruta indicada per l'usuari existeix localment
         Path userPath = Paths.get(ruta);
         String nomRepo = "";
-        if (Files.exists(userPath)) {
-            //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
-            if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
-                nomRepo = ruta.substring(3);
+        
+        //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
+        if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
+            nomRepo = ruta.substring(3);
 
-            } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
-                nomRepo = ruta.substring(1);
-            }
-
-            //Canvia els separadors de ruta per _
-            nomRepo = nomRepo.replaceAll("[/\\\\]", "_");
-            //Emmagatzemar nom i ruta del repositori al singleton
-            f.setRepositoryName(nomRepo);
-            f.setRepositoryPath(userPath);
-
-            //Comprobem si la col·lecció ja existeix
-            boolean collectionExists;
-            try {
-                collectionExists = db.listCollectionNames()
-                        .into(new ArrayList<>()).contains(nomRepo);
-
-                if (collectionExists) {
-                    System.out.println("ERROR: Aquest repositori ja existeix.");
-
-                } else {
-                    //Crea el nou repositori amb el nom de la ruta processada
-                    db.getCollection(nomRepo);
-                    System.out.println("Repositori creat correctament.");
-
-                    //Inserta un document amb la ruta del repositori
-                    Document del = new Document();
-                    del.append("ruta", repoPath);
-                    db.getCollection(nomRepo).insertOne(del);
-                }
-            } catch (MongoException ex) {
-                System.out.println("Error: " + ex.getMessage());
-            }
-        } else {
-            System.out.println("La ruta no existeix localment.");
+        } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
+            nomRepo = ruta.substring(1);
         }
+
+        //Canvia els separadors de ruta per _
+        nomRepo = nomRepo.replaceAll("[/\\\\]", "_");
+        //Emmagatzemar nom i ruta del repositori al singleton
+        f.setRepositoryName(nomRepo);
+        f.setRepositoryPath(userPath);
+
+        //Comprobem si la col·lecció ja existeix
+        boolean collectionExists;
+        try {
+            collectionExists = db.listCollectionNames()
+                    .into(new ArrayList<>()).contains(nomRepo);
+
+            if (collectionExists) {
+                System.out.println("ERROR: Aquest repositori ja existeix.");
+
+            } else {
+                //Crea el nou repositori amb el nom de la ruta processada
+                db.getCollection(nomRepo);
+                System.out.println("Repositori creat correctament.");
+
+                //Inserta un document amb la ruta del repositori
+                Document del = new Document();
+                del.append("ruta", f.getRepositoryPath().toString());
+                db.getCollection(nomRepo).insertOne(del);
+            }
+        } catch (MongoException ex) {
+            System.out.println("Error: " + ex.getMessage());
+        }
+
     }
 
     /**
@@ -277,6 +275,6 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void cloneRepository(String file) {
         throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
+            }
 
 }

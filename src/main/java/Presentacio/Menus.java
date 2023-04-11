@@ -11,6 +11,8 @@ import Singleton.MongoConnection;
 import Utils.Utils;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Scanner;
 
 /**
@@ -53,8 +55,20 @@ public class Menus {
     public static void menuCreate() {
         try {
             Scanner in = new Scanner(System.in);
-            System.out.println("Indicar ruta: ");
-            String ruta = in.nextLine();
+            boolean pathExists = false;
+            String ruta = null;
+            
+            //Comproba si existeix la ruta
+            while (!pathExists) {
+                System.out.println("Indicar ruta: ");
+                ruta = in.nextLine();
+                if (Files.exists(Paths.get(ruta))) {
+                    pathExists = true;
+                } else {
+                    System.out.println("La ruta no existeix, introdueix-la de nou");
+                }
+            }
+            
             logica.createRepository(ruta);
             
            int op =0; 
