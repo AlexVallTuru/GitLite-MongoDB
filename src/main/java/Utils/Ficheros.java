@@ -270,7 +270,7 @@ public class Ficheros {
 
     }
 
-    public static void checkDateForPull(Fitxer fitxer, Boolean force) {
+   /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {
         Date d = new Date(fitxer);
         String pathRepositorio = Ficheros.getAbsolutePath(path, file);
         Timestamp ts = Utils.convertToTimeStamp(d);
@@ -297,6 +297,6 @@ public class Ficheros {
 
         return false;
 
-    }
+    }*/
 
 }
