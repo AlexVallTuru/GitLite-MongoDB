@@ -24,6 +24,7 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import java.nio.file.Files;
 import java.nio.file.Path;
 
 /**
@@ -268,6 +269,27 @@ public class Ficheros {
         bw.write(content);
         bw.close();
 
+    }
+    
+    /**
+     * Comprova si un fitxer d'un document es troba a un subdirectori del
+     * repositori.
+     * 
+     * @param filePath
+     * @return 
+     */
+    public static boolean checkSubdirectory(Path filePath) {
+        boolean check = true;
+        if (!Files.exists(filePath.getParent())) {
+            try {
+                Files.createDirectories(filePath.getParent());
+                check = true;
+            } catch (IOException e) {
+                System.out.println("Error creant directoris: " + e.getMessage());
+                check = false;
+            }
+        }
+        return check;
     }
 
    /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {

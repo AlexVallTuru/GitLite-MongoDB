@@ -69,23 +69,40 @@ public class Utils {
 
     }
 
+    /**
+     * Dona un format a un string si aquest es válid.
+     *
+     * @param date
+     * @return
+     */
+    public static Date dateFormat(String date) {
+        Date newDate = null;
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            newDate = dateFormat.parse(date);
+        } catch (ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return newDate;
+    }
+
     public static Timestamp convertToTimeStamp(Date date) {
         if (date != null) {
             return new Timestamp(date.getTime());
         }
         return null;
     }
-    
+
     /**
      * Comproba si una data introduïda per text de l'usuari te un format válid.
-     * 
+     *
      * @param data
-     * @return 
+     * @return
      */
     public static Boolean verificaData(String data) {
         boolean check;
         try {
-            DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
             Date date = formatter.parse(data);
             check = true;
         } catch (ParseException e) {

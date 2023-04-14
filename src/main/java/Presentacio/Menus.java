@@ -167,10 +167,10 @@ public class Menus {
         System.out.println("Indica una data en dd-MM-yyyy (opcional): ");
         String date = in.nextLine();
         // Si l'usuari introdueix una data, comproba que tingui un format valid
-        if (!date.equals("")) {
-            while (!Utils.verificaData(date)) {
+        if (!date.isBlank()) {
+            while (!Utils.verificaData(date) && !date.isBlank()) {
                 System.out.println("Format de la data incorrecte, introdueix-ho"
-                        + " de nou:");
+                        + " de nou o no introdueixis res per continuar:");
                 date = in.nextLine();
             }
         }

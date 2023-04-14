@@ -113,8 +113,6 @@ public class DocumentsDAO implements InterfaceDAO {
 
     /**
      * Elimina el repositori actual de la BBDD.
-     *
-     * @param repositori
      */
     @Override
     public void dropRepository() {
@@ -225,7 +223,6 @@ public class DocumentsDAO implements InterfaceDAO {
                 System.out.println("Error: " + e.getMessage());
             }
             System.out.println("Clonant repositori a " + f.getRepositoryPath());
-            ArrayList<Document> repoDocs = new ArrayList<>();
 
             // Obtenim un cursor amb tots els documents de la col·leccio
             MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
@@ -233,22 +230,30 @@ public class DocumentsDAO implements InterfaceDAO {
             while (cursor.hasNext()) {
                 // Iterem la col·leccio i afegim els documents a la llista
                 Document documento = cursor.next();
+                
+                // Saltem el primer document amb clau "ruta"
                 if (documento.containsKey("ruta")) {
-                    continue; // Saltem el document amb clau "ruta"
+                    continue; 
                 }
-                repoDocs.add(documento); // Afegim els documents a la llista
 
-                // Comprovar si el document està en un subdirectori
-                Path filePath = f.getRepositoryPath().resolve(documento.getString("path").substring(1));
-                if (!Files.exists(filePath.getParent())) {
-                    try {
-                        Files.createDirectories(filePath.getParent());
-                    } catch (IOException e) {
-                        System.out.println("Error creant directoris: " + e.getMessage());
+                // Comprovar si el fitxer es anterior a la data indicada per
+                // l'usuari, si aquest n'ha indicat una
+                if (!date.isBlank()) {
+                    Date newDate = Utils.dateFormat(date);
+                    Date docDate = documento.getDate("modificacio");
+                    // Si la data del document es mes nova que la indicada
+                    // no l'afegeix
+                    if (docDate.after(newDate)) {
                         continue;
                     }
                 }
 
+                // Comprovar si el document està en un subdirectori
+                Path filePath = f.getRepositoryPath().resolve(documento.getString("path").substring(1));
+                if (!Ficheros.checkSubdirectory(filePath)) {
+                    continue;
+                }
+                
                 // Escribim el document en un nou fitxer
                 try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
