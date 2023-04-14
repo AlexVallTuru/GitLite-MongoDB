@@ -123,7 +123,7 @@ public class DocumentsDAO implements InterfaceDAO {
                     .getCollection(f.getRepositoryName());
             repositoryCollection.drop();
             System.out.println("Repositori eliminat correctament.");
-            
+
         } catch (MongoException ex) {
             System.out.println("Excepció: " + ex.getMessage());
         }
@@ -238,10 +238,19 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
                 repoDocs.add(documento); // Afegim els documents a la llista
 
+                // Comprovar si el document està en un subdirectori
+                Path filePath = f.getRepositoryPath().resolve(documento.getString("path").substring(1));
+                if (!Files.exists(filePath.getParent())) {
+                    try {
+                        Files.createDirectories(filePath.getParent());
+                    } catch (IOException e) {
+                        System.out.println("Error creant directoris: " + e.getMessage());
+                        continue;
+                    }
+                }
+
                 // Escribim el document en un nou fitxer
-                String filePath = f.getRepositoryPath().resolve(documento.getString("nom")
-                        + "." + documento.getString("extensio")).toString();
-                try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(filePath))) {
+                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
                     System.out.println("Clonat fitxer " + filePath);
                 } catch (IOException e) {
