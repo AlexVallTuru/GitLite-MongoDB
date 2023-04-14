@@ -27,9 +27,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void dropRepository(String file) {
+    public void dropRepository() {
         try {
-            dao.dropRepository(file);
+            dao.dropRepository();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -64,9 +64,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void cloneRepository(String file, String date) {
+    public void cloneRepository(String date) {
         try {
-            dao.cloneRepository(file, date);
+            dao.cloneRepository(date);
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -16,11 +16,10 @@ import java.util.ArrayList;
 public interface InterfaceDAO {
     
     void createRepository(String ruta);
-    void dropRepository(String repository);
+    void dropRepository();
     void pushFile(String file,Boolean force);
     void pullFile(String file,Boolean force);
     void compareFiles(String file, boolean containsDetails) throws Exception;
-    void cloneRepository(String file);
-    void cloneRepository(String file, String date);
+    void cloneRepository(String date);
     
 }

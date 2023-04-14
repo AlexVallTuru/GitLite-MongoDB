@@ -13,6 +13,7 @@ import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -108,11 +109,16 @@ public class Menus {
 
     public static void menuDrop() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar repositori: ");
-        String ruta = in.nextLine();
-
-        logica.dropRepository(ruta);
-
+        System.out.println("Estás segur de que vols eliminar el repositori "
+                + "actual? [Si = 1, No = 2]");
+        Boolean check = Utils.verificaOpcio(in.nextInt());
+        
+        // Si l'usuari indica que no s'aborta l'operació
+        if (check) {
+            logica.dropRepository();
+        } else {
+            System.out.println("Operació cancel·lada");
+        }
     }
 
     public static void menuPush() {
@@ -158,11 +164,17 @@ public class Menus {
 
     public static void menuClone() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar repositori: ");
-        String repo = in.nextLine();
-        System.out.println("Indica una data (opcional): ");
+        System.out.println("Indica una data en dd-MM-yyyy (opcional): ");
         String date = in.nextLine();
-        logica.cloneRepository(repo, date);
+        // Si l'usuari introdueix una data, comproba que tingui un format valid
+        if (!date.equals("")) {
+            while (!Utils.verificaData(date)) {
+                System.out.println("Format de la data incorrecte, introdueix-ho"
+                        + " de nou:");
+                date = in.nextLine();
+            }
+        }
+        logica.cloneRepository(date);
     }
 
     public static int menuAyuda() {

@@ -11,6 +11,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Scanner;
 import java.util.Date;
 import org.bson.Document;
@@ -72,6 +75,24 @@ public class Utils {
         }
         return null;
     }
+    
+    /**
+     * Comproba si una data introduïda per text de l'usuari te un format válid.
+     * 
+     * @param data
+     * @return 
+     */
+    public static Boolean verificaData(String data) {
+        boolean check;
+        try {
+            DateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+            Date date = formatter.parse(data);
+            check = true;
+        } catch (ParseException e) {
+            check = false;
+        }
+        return check;
+    }
 
     public static File documentToFile(Document document) throws IOException {
         String path = document.getString("path");
@@ -92,18 +113,17 @@ public class Utils {
         return file;
     }
 
-    public static void crearRuta(File destination, File fname,Boolean force) throws IOException {
+    public static void crearRuta(File destination, File fname, Boolean force) throws IOException {
         if (destination.mkdirs()) {
             System.out.println("Nueva ruta creada");
             fname.createNewFile();
         } else {
             System.out.println("La ruta ya existe");
             if (fname.exists()) {
-                if(force){
+                if (force) {
                     fname.createNewFile();
                 }
             }
-            
 
         }
     }

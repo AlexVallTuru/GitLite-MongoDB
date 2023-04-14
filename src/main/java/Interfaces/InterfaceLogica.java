@@ -15,7 +15,7 @@ public interface InterfaceLogica {
 
     void createRepository(String ruta);
 
-    void dropRepository(String repository);
+    void dropRepository();
 
     void pushFile(String file,Boolean force);
 
@@ -23,6 +23,6 @@ public interface InterfaceLogica {
 
     void compareFiles(String file, boolean containsDetails);
     
-    void cloneRepository(String file, String date);
+    void cloneRepository(String date);
     
 }

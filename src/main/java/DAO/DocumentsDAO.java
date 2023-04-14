@@ -26,6 +26,7 @@ import org.bson.Document;
 import static Utils.Ficheros.*;
 import static Utils.Utils.fileToDocument;
 import com.mongodb.client.model.Filters;
+import java.io.BufferedWriter;
 import java.io.IOException;
 import java.sql.Timestamp;
 import java.util.Date;
@@ -68,7 +69,7 @@ public class DocumentsDAO implements InterfaceDAO {
         System.out.println("Creant repositori...");
         Path userPath = Paths.get(ruta);
         String nomRepo = "";
-        
+
         //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
         if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
             nomRepo = ruta.substring(3);
@@ -90,7 +91,9 @@ public class DocumentsDAO implements InterfaceDAO {
                     .into(new ArrayList<>()).contains(nomRepo);
 
             if (collectionExists) {
-                System.out.println("ERROR: Aquest repositori ja existeix.");
+                // Si ja existeix, guardem el nom i ruta del repositori i continua
+                // al següent menú.
+                System.out.println("ERROR: Aquest repositori ja existeix. Accedint...");
 
             } else {
                 //Crea el nou repositori amb el nom de la ruta processada
@@ -109,30 +112,18 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     /**
-     * Elimina un repositori indicat per l'usuari de la BBDD si aquest existeix.
+     * Elimina el repositori actual de la BBDD.
      *
      * @param repositori
      */
     @Override
-    public void dropRepository(String repositori) {
+    public void dropRepository() {
         try {
-            /**
-             * TODO Eliminar cuando la creacion de la BD este implementada
-             */
-            repository = connection.getDatabase("GETDB");
-
-            //Obtenim el repositori si existeix
-            boolean collectionExists = repository.listCollectionNames()
-                    .into(new ArrayList<>()).contains(repositori);
-            if (collectionExists) {
-                MongoCollection<Document> repositoryCollection = repository
-                        .getCollection(repositori);
-                repositoryCollection.drop();
-                System.out.println("Repositori eliminat correctament.");
-            } else {
-                System.out.println("El repositori "
-                        + repositori + " no existeix.");
-            }
+            MongoCollection<Document> repositoryCollection = db
+                    .getCollection(f.getRepositoryName());
+            repositoryCollection.drop();
+            System.out.println("Repositori eliminat correctament.");
+            
         } catch (MongoException ex) {
             System.out.println("Excepció: " + ex.getMessage());
         }
@@ -225,8 +216,43 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void cloneRepository(String file, String date) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void cloneRepository(String date) {
+        //Comproba si el directori existeix localment per crear-lo
+        if (Files.notExists(f.getRepositoryPath())) {
+            try {
+                Files.createDirectories(f.getRepositoryPath());
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+            System.out.println("Clonant repositori a " + f.getRepositoryPath());
+            ArrayList<Document> repoDocs = new ArrayList<>();
+
+            // Obtenim un cursor amb tots els documents de la col·leccio
+            MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
+
+            while (cursor.hasNext()) {
+                // Iterem la col·leccio i afegim els documents a la llista
+                Document documento = cursor.next();
+                if (documento.containsKey("ruta")) {
+                    continue; // Saltem el document amb clau "ruta"
+                }
+                repoDocs.add(documento); // Afegim els documents a la llista
+
+                // Escribim el document en un nou fitxer
+                String filePath = f.getRepositoryPath().resolve(documento.getString("nom")
+                        + "." + documento.getString("extensio")).toString();
+                try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(filePath))) {
+                    writer.write(documento.getString("contingut"));
+                    System.out.println("Clonat fitxer " + filePath);
+                } catch (IOException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }
+
+        } else {
+            System.out.println("El repositori a clonar ja existeix localment,"
+                    + " eliminal i intenta-ho de nou.");
+        }
     }
 
     @Override
@@ -271,10 +297,4 @@ public class DocumentsDAO implements InterfaceDAO {
             compareTwoFiles(documentLocal, documentoDb, containsDetails);
         }
     }
-
-    @Override
-    public void cloneRepository(String file) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-            }
-
 }
