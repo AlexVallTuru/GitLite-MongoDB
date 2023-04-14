@@ -41,7 +41,6 @@ public class DocumentsDAO implements InterfaceDAO {
 
     File rem = null;
     String userHome = System.getProperty("user.home");
-    String fileSeparator = System.getProperty("file.separator");
     String userFolder = "getRepo1";
     String repositoryName = null;
     MongoClient connection = MongoConnection.getInstance().getDBClient();
@@ -57,10 +56,7 @@ public class DocumentsDAO implements InterfaceDAO {
 
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
-     * El nom de la ruta es la direcció del repositori localment, canviant els
-     * separadors de fitxers per _. Per exemple:
-     * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
-     * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     * El nom del repositori es la direcció del repositori localment formatat.
      *
      * @param ruta
      */
@@ -68,18 +64,9 @@ public class DocumentsDAO implements InterfaceDAO {
     public void createRepository(String ruta) {
         System.out.println("Creant repositori...");
         Path userPath = Paths.get(ruta);
-        String nomRepo = "";
-
-        //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
-        if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
-            nomRepo = ruta.substring(3);
-
-        } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
-            nomRepo = ruta.substring(1);
-        }
-
-        //Canvia els separadors de ruta per _
-        nomRepo = nomRepo.replaceAll("[/\\\\]", "_");
+        // Obtenim el nom del repositori a partir de la ruta
+        String nomRepo = Utils.pathToRepoName(ruta);
+        
         //Emmagatzemar nom i ruta del repositori al singleton
         f.setRepositoryName(nomRepo);
         f.setRepositoryPath(userPath);

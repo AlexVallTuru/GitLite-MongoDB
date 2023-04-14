@@ -68,9 +68,35 @@ public class Utils {
         }
 
     }
+    
+    /**
+     * Canvia una ruta canviant els separadors de fitxers per _. Per exemple:
+     * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
+     * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     * 
+     * @param ruta
+     * @return 
+     */
+    public static String pathToRepoName(String ruta) {
+        // Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
+        if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
+            ruta = ruta.substring(3);
+
+        // Si no conté cap identificador d'unitat, només comproba si comença
+        // amb un separador i l'elimina
+        } else if (ruta.startsWith(System.getProperty("file.separator")) 
+                || ruta.startsWith("/")) {
+            ruta = ruta.substring(1);
+        }
+
+        // Canvia els separadors de ruta per _
+        ruta = ruta.replaceAll("[/\\\\]", "_");
+        return ruta;
+    }
 
     /**
-     * Dona un format a un string si aquest es válid.
+     * Dona un format a un string amb una data si aquest es válid i retorna el
+     * valor Date.
      *
      * @param date
      * @return
