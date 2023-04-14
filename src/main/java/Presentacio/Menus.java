@@ -73,7 +73,7 @@ public class Menus {
             logica.createRepository(ruta);
             
            int op =0; 
-           while(op!= 5){
+           while(op!= 7){
                op=Menus.menuPrincipal();
                MenuLogica.repositoryOptions(op);
            }
