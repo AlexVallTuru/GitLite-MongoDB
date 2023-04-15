@@ -178,6 +178,7 @@ public class DocumentsDAO implements InterfaceDAO {
             String destinationFolder = String.join("", f.getRepositoryPath().toString(), file);
 
             if (!file.isEmpty()) {
+                //Comprobar que no esta vacio
                 //String path = Ficheros.getAbsolutePath(f.getRepositoryPath(),pa);
 
                 Bson filter = Filters.eq("path", file);
@@ -187,13 +188,19 @@ public class DocumentsDAO implements InterfaceDAO {
                 File destination = new File(fit.getParentPath());
                 File fname = new File(destination, String.join(".", fit.getNomFitxer(), fit.getExtensio()));
 
+                //Forzar el pull
                 if (force) {
 
                     Utils.crearRuta(destination, fname, force);
                     Ficheros.addContent(fname, fit.getContingut());
 
                 } else {
-                    if (fname.exists()) {
+                    //Si no se fuerza se comprueba la fecha
+                    if (Ficheros.checkDateForPull(fit, file)) {
+                        Utils.crearRuta(destination, fname, force);
+                        Ficheros.addContent(fname, fit.getContingut());
+                    }
+                    /*if (fname.exists()) {
                         Date lastRemote = documento.getDate("modificacio");
                         Timestamp last = Utils.convertToTimeStamp(new Date(fname.lastModified()));
                         Timestamp tsRemote = Utils.convertToTimeStamp(lastRemote);
@@ -208,12 +215,12 @@ public class DocumentsDAO implements InterfaceDAO {
                     } else {
                         Utils.crearRuta(destination, fname, force);
                         Ficheros.addContent(fname, fit.getContingut());
-                    }
+                    }*/
 
                 }
 
             } else {
-                //Pull recursivo
+                Ficheros.recursivePull();
 
             }
         } catch (Exception e) {
