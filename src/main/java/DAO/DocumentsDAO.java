@@ -200,6 +200,12 @@ public class DocumentsDAO implements InterfaceDAO {
         //}
     }
 
+    /**
+     * Clona el repositori actual de la BBDD al sistema, si aquest no existeix
+     * localment.
+     * 
+     * @param date 
+     */
     @Override
     public void cloneRepository(String date) {
         //Comproba si el directori existeix localment per crear-lo

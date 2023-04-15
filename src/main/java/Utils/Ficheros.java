@@ -270,13 +270,13 @@ public class Ficheros {
         bw.close();
 
     }
-    
+
     /**
      * Comprova si un fitxer d'un document es troba a un subdirectori del
      * repositori.
-     * 
+     *
      * @param filePath
-     * @return 
+     * @return
      */
     public static boolean checkSubdirectory(Path filePath) {
         boolean check = true;
@@ -292,7 +292,7 @@ public class Ficheros {
         return check;
     }
 
-   /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {
+    /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {
         Date d = new Date(fitxer);
         String pathRepositorio = Ficheros.getAbsolutePath(path, file);
         Timestamp ts = Utils.convertToTimeStamp(d);
@@ -320,5 +320,4 @@ public class Ficheros {
         return false;
 
     }*/
-
 }
