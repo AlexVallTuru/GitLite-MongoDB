@@ -70,7 +70,7 @@ public class DocumentsDAO implements InterfaceDAO {
         Path userPath = Paths.get(ruta);
         // Obtenim el nom del repositori a partir de la ruta
         String nomRepo = Utils.pathToRepoName(ruta);
-        
+
         //Emmagatzemar nom i ruta del repositori al singleton
         f.setRepositoryName(nomRepo);
         f.setRepositoryPath(userPath);
@@ -221,10 +221,10 @@ public class DocumentsDAO implements InterfaceDAO {
             while (cursor.hasNext()) {
                 // Iterem la col·leccio i afegim els documents a la llista
                 Document documento = cursor.next();
-                
+
                 // Saltem el primer document amb clau "ruta"
                 if (documento.containsKey("ruta")) {
-                    continue; 
+                    continue;
                 }
 
                 // Comprovar si el fitxer es anterior a la data indicada per
@@ -244,9 +244,9 @@ public class DocumentsDAO implements InterfaceDAO {
                 if (!Ficheros.checkSubdirectory(filePath)) {
                     continue;
                 }
-                
+
                 // Escribim el document en un nou fitxer
-                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                try ( BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
                     System.out.println("Clonat fitxer " + filePath);
                 } catch (IOException e) {
@@ -264,27 +264,30 @@ public class DocumentsDAO implements InterfaceDAO {
     public void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
 
         if (inputPathfile.isEmpty()) {
-            compararMultiplesArchivos(inputPathfile,containsDetails,detailLocalORemoto);
+            compararMultiplesArchivos(inputPathfile, containsDetails, detailLocalORemoto);
         } else {
-            compararUnicoArchivo(inputPathfile,containsDetails,detailLocalORemoto);
+            compararUnicoArchivo(inputPathfile, containsDetails, detailLocalORemoto);
         }
     }
-    
-    public void compararMultiplesArchivos (String inputPathfile, boolean containsDetails, boolean detailLocalORemoto){
 
-        MongoCursor<Document> allFilesDb = collection.find(
+    public void compararMultiplesArchivos(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+        MongoDatabase repository = f.getDataBase();
+        MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
+        MongoCursor<Document> allFilesDb = col.find(
                 new Document("extensio", new Document("$in", retornarExtension()))
         ).iterator();
+
         ArrayList<Document> documentsDb = new ArrayList<>();
         while (allFilesDb.hasNext()) {
             documentsDb.add(allFilesDb.next());
         }
-        File directoryLocal = new File(repoPath.toUri());
+        File directoryLocal = new File(f.getRepositoryPath().toUri());
+        //Modificar funcion compareAllFiles
         List<File> fileList = compareAllFiles(directoryLocal);
         ArrayList<String> archivosNoEncontrados = new ArrayList<>();
         ArrayList<String> archivosEncontrados = new ArrayList<>();
 
-        if(detailLocalORemoto){
+        if (detailLocalORemoto) {
             //DE LOCAL A REMOTO
             for (Document documentoDb : documentsDb) {
                 for (File localFile : fileList) {
@@ -292,16 +295,16 @@ public class DocumentsDAO implements InterfaceDAO {
                         archivosEncontrados.add(localFile.getName());
                         System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
                         try {
-                            compareTwoFiles(fileToDocument(localFile),documentoDb,containsDetails, detailLocalORemoto);
+                            compareTwoFiles(fileToDocument(localFile), documentoDb, containsDetails, detailLocalORemoto);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                    }else{
+                    } else {
                         archivosNoEncontrados.add(localFile.getName());
                     }
                 }
             }
-        }else {
+        } else {
             //DE REMOTO A LOCAL
             for (File localFile : fileList) {
                 for (Document documentoDb : documentsDb) {
@@ -309,22 +312,24 @@ public class DocumentsDAO implements InterfaceDAO {
                         archivosEncontrados.add(documentoDb.getString("nom"));
                         System.out.print("Comparación del archivo " + documentoDb.getString("nom") + " (remoto a local).\n");
                         try {
-                            compareTwoFiles(fileToDocument(localFile),documentoDb,containsDetails, detailLocalORemoto);
+                            compareTwoFiles(fileToDocument(localFile), documentoDb, containsDetails, detailLocalORemoto);
                         } catch (IOException e) {
                             throw new RuntimeException(e);
                         }
-                    }else{
+                    } else {
                         archivosNoEncontrados.add(documentoDb.getString("nom"));
                     }
                 }
             }
         }
-        Ficheros.archivosNoEcontrados(archivosNoEncontrados,archivosEncontrados,detailLocalORemoto);
+        Ficheros.archivosNoEcontrados(archivosNoEncontrados, archivosEncontrados, detailLocalORemoto);
     }
 
-    public void compararUnicoArchivo(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto){
+    public void compararUnicoArchivo(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+        MongoDatabase repository = f.getDataBase();
+        MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
         Path secondPath = Paths.get(inputPathfile);
-        Path resolvedPath = repoPath.resolve(secondPath);
+        Path resolvedPath = f.getRepositoryPath().resolve(secondPath);
 
         File localFile = new File(resolvedPath.toString());
 
@@ -342,12 +347,12 @@ public class DocumentsDAO implements InterfaceDAO {
 
         Document query = new Document("path", resolvedPath.toString())
                 .append("extensio", new Document("$in", retornarExtension()));
-        Document documentoDb = collection.find(query).first();
-        if(detailLocalORemoto){
+        Document documentoDb = col.find(query).first();
+        if (detailLocalORemoto) {
             System.out.print("\nComparación del archivo " + localFile.getName() + " (local a remoto).\n");
-        }else {
+        } else {
             System.out.print("\nComparación del archivo " + localFile.getName() + " (remoto a local).\n");
         }
-        compareTwoFiles(documentLocal,documentoDb,containsDetails, detailLocalORemoto);
+        compareTwoFiles(documentLocal, documentoDb, containsDetails, detailLocalORemoto);
     }
 }

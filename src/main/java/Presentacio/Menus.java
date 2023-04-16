@@ -150,7 +150,7 @@ public class Menus {
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
         System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n "
-                + "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + repoName + ".");
+                + "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + f.getRepositoryName() + ".");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
         String resultado = in.nextLine();
