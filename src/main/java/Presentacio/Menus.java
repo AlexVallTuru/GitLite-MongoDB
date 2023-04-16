@@ -63,7 +63,7 @@ public class Menus {
             while (!pathExists) {
                 System.out.println("Indicar ruta: ");
                 ruta = in.nextLine();
-                if (Files.exists(Paths.get(ruta))) {
+                if (new File(ruta).exists()) {
                     pathExists = true;
                 } else {
                     System.out.println("La ruta no existeix, introdueix-la de nou");
@@ -78,9 +78,8 @@ public class Menus {
                 MenuLogica.repositoryOptions(op);
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            System.out.println("Error: " + e.getMessage());
         }
-
     }
 
     public static int menuInicio() {
