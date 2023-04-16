@@ -4,6 +4,8 @@
  */
 package Utils;
 
+import Model.Fitxer;
+import Singleton.MongoConnection;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
 
@@ -14,11 +16,19 @@ import java.security.MessageDigest;
 import java.sql.Date;
 import java.util.*;
 
+import java.sql.Timestamp;
+
+import java.util.ArrayList;
+import java.util.List;
+
 import org.bson.Document;
+import org.bson.conversions.Bson;
 
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 /**
  *
@@ -34,6 +44,7 @@ public class Ficheros {
         while ((line = reader.readLine()) != null) {
             stringBuilder.append(line);
             stringBuilder.append(ls);
+
         }
         reader.close();
 
@@ -55,15 +66,34 @@ public class Ficheros {
 
     }
 
-    public static void pushAllFiles(File file) {
+    public static void pushAllFiles(File file, boolean force) throws IOException {
+        MongoConnection c = MongoConnection.getInstance();
+        MongoCollection<Document> col = c.getDataBase().getCollection(c.getRepositoryName());
         File[] files = file.listFiles();
+
         for (File fitxers : files) {
+
             if (fitxers.isDirectory()) {
-                pushAllFiles(fitxers);
+                //System.out.println("<Directorio> " + fitxers.getAbsolutePath());
+                pushAllFiles(fitxers, force);
+
             } else {
+                //System.out.println("<Fichero> " + fitxers.getAbsolutePath());
+                if (!force) {
+
+                    if (Ficheros.compareModifiedDate(c.getRepositoryPath(), fitxers, col)) {
+
+                        Document update = Utils.fileToDocument(fitxers);
+                        String filter = Ficheros.getAbsolutePath(c.getRepositoryPath(), fitxers);
+                        col.replaceOne(Filters.eq("path", filter), update);
+
+                    }
+
+                } else {
+                    col.insertOne(Utils.fileToDocument(fitxers));
+                }
 
             }
-
         }
     }
 
@@ -85,7 +115,7 @@ public class Ficheros {
     public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean  detailLocalORemoto) {
 
         try {
-            if (compareTwoTimeStamp(localDoc,dbDoc)) {
+            if (compareTwoTimeStamp(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!\n\n");
             } else if (sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
@@ -106,17 +136,39 @@ public class Ficheros {
         }
     }
 
-    public static boolean compareTwoTimeStamp(Document doc1, Document doc2){
+    public static boolean compareTwoTimeStamp(Document doc1, Document doc2) {
         long localTimeStamp = doc1.getDate("modificacio").getTime();
         long dbTimeStamp = doc2.getDate("modificacio").getTime();
         return dbTimeStamp == localTimeStamp;
     }
 
-    public static void compareModifiedDate(File file, MongoCollection collection) {
+    public static boolean compareModifiedDate(Path path, File file, MongoCollection collection) throws IOException {
         Date d = new Date(file.lastModified());
-        Document c = (Document) collection.find(Filters.eq("path", file.getPath().substring(2))).first();
-        System.out.println(c.getDate("modificacio"));
-        System.out.println(d.equals(c.getDate("modificacio")));
+        String pathRepositorio = Ficheros.getAbsolutePath(path, file);
+        Timestamp ts = Utils.convertToTimeStamp(d);
+        Bson filter = Filters.and(Filters.eq("path", pathRepositorio), Filters.exists("path", true));
+        Document c = (Document) collection.find(filter).first();
+        if (c == null) {
+            System.out.println("No s'ha trovat el fitxer al repositori. Es pujara automaticament");
+            collection.insertOne(Utils.fileToDocument(file));
+        } else {
+            Timestamp ts2 = Utils.convertToTimeStamp(c.getDate("modificacio"));
+
+            if (d.after(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
+                System.out.println(file.getName() + " se ha actualizado");
+
+                return true;
+            } else if (d.before(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
+                System.out.println("El fichero remoto es posterior, actualiza el local");
+                return false;
+            } else {
+                System.out.println("los ficheros son iguales");
+            }
+
+        }
+
+        return false;
+
     }
 
     public static void compareLines(Document doc1, Document doc2, boolean detailLocalORemoto) throws IOException {
@@ -132,29 +184,29 @@ public class Ficheros {
             lineas2 = docToArrayListLines(doc1);
         }
         int contadorLineasIguales = 0;
-            for (String linea1 : lineas1) {
+        for (String linea1 : lineas1) {
 
-                contadorDeLineas1++;
-                int contadorDeLineas2 = 0;
-                for (String linea2 : lineas2) {
-                    contadorDeLineas2++;
-                    if (contadorDeLineas1 - 1 >= lineas2.size()) {
-                        if (linea1.equals(linea2)) {
-                            System.out.println("La linea " + contadorDeLineas1 + " s'ha modificat.");
-                            break;
-                        }
-                    } else if (linea1.equals(lineas2.get(contadorDeLineas1 - 1))) {
-                        contadorLineasIguales++;
-                        break;
-                    } else if (linea1.equals(linea2)) {
+            contadorDeLineas1++;
+            int contadorDeLineas2 = 0;
+            for (String linea2 : lineas2) {
+                contadorDeLineas2++;
+                if (contadorDeLineas1 - 1 >= lineas2.size()) {
+                    if (linea1.equals(linea2)) {
                         System.out.println("La linea " + contadorDeLineas1 + " s'ha modificat.");
                         break;
                     }
-                    if (contadorDeLineas2 == lineas2.size()) {
-                        System.out.println("La linea " + contadorDeLineas1 + " s'ha eliminat.");
-                    }
+                } else if (linea1.equals(lineas2.get(contadorDeLineas1 - 1))) {
+                    contadorLineasIguales++;
+                    break;
+                } else if (linea1.equals(linea2)) {
+                    System.out.println("La linea " + contadorDeLineas1 + " s'ha modificat.");
+                    break;
+                }
+                if (contadorDeLineas2 == lineas2.size()) {
+                    System.out.println("La linea " + contadorDeLineas1 + " s'ha eliminat.");
                 }
             }
+        }
         System.out.println("S'ha trobat " + contadorLineasIguales + " líneas iguals.\n");
     }
 
@@ -231,4 +283,68 @@ public class Ficheros {
             System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en local.\n\n");
         }
     }
+    
+    public static String getAbsolutePath(Path directory, File file) {
+        String path = file.getAbsolutePath();
+        return path.replace(directory.toString(), "");
+
+    }
+
+    public static void addContent(File fname, String content) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter(fname));
+        bw.write(content);
+        bw.close();
+
+    }
+    
+    /**
+     * Comprova si un fitxer d'un document es troba a un subdirectori del
+     * repositori.
+     * 
+     * @param filePath
+     * @return 
+     */
+    public static boolean checkSubdirectory(Path filePath) {
+        boolean check = true;
+        if (!Files.exists(filePath.getParent())) {
+            try {
+                Files.createDirectories(filePath.getParent());
+                check = true;
+            } catch (IOException e) {
+                System.out.println("Error creant directoris: " + e.getMessage());
+                check = false;
+            }
+        }
+        return check;
+    }
+
+   /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {
+        Date d = new Date(fitxer);
+        String pathRepositorio = Ficheros.getAbsolutePath(path, file);
+        Timestamp ts = Utils.convertToTimeStamp(d);
+        Bson filter = Filters.and(Filters.eq("path", pathRepositorio), Filters.exists("path", true));
+        Document c = (Document) collection.find(filter).first();
+        if (c == null) {
+            System.out.println("No s'ha trovat el fitxer al repositori. Es pujara automaticament");
+            collection.insertOne(Utils.fileToDocument(file));
+        } else {
+            Timestamp ts2 = Utils.convertToTimeStamp(c.getDate("modificacio"));
+
+            if (d.after(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
+                System.out.println(file.getName() + " se ha actualizado");
+
+                return true;
+            } else if (d.before(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
+                System.out.println("El fichero remoto es posterior, actualiza el local");
+                return false;
+            } else {
+                System.out.println("los ficheros son iguales");
+            }
+
+        }
+
+        return false;
+
+    }*/
+
 }

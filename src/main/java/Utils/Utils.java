@@ -4,15 +4,18 @@
  */
 package Utils;
 
+import Singleton.MongoConnection;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
+import java.sql.Timestamp;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Scanner;
 import java.util.Date;
-import java.util.List;
 import org.bson.Document;
 
 /**
@@ -29,18 +32,109 @@ public class Utils {
     }
 
     public static Document fileToDocument(File file) throws IOException {
+        MongoConnection c = MongoConnection.getInstance();
+        Path path = c.getRepositoryPath();
         String[] nom_i_extensio = file.getName().split("\\.");
-
+        String filePath = Ficheros.getAbsolutePath(path, file);
         Document doc = new Document();
         doc
-                .append("path", file.getAbsolutePath().substring(2))
+                .append("path", filePath)
                 .append("nom", nom_i_extensio[0])
                 .append("extensio", nom_i_extensio[1])
                 .append("tamany", Files.size(file.toPath()))
-                .append("modificacio", new Date(file.lastModified()))
+                .append("modificacio", Utils.convertToTimeStamp(new Date(file.lastModified())))
                 .append("contingut", Ficheros.llegir(file));
 
         return doc;
+    }
+
+    public static String generateRepositoryName(File file) {
+        String path = file.toString().substring(3).replace("\\", "_");
+        return path;
+
+    }
+
+    public static Boolean verificaOpcio(int opcio) {
+        Scanner in = new Scanner(System.in);
+        while (opcio != 1 && opcio != 2) {
+            System.out.println("Opcio no valida");
+            opcio = in.nextInt();
+
+        }
+        if (opcio == 1) {
+            return true;
+        } else {
+            return false;
+        }
+
+    }
+    
+    /**
+     * Canvia una ruta canviant els separadors de fitxers per _. Per exemple:
+     * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
+     * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     * 
+     * @param ruta
+     * @return 
+     */
+    public static String pathToRepoName(String ruta) {
+        // Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
+        if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
+            ruta = ruta.substring(3);
+
+        // Si no conté cap identificador d'unitat, només comproba si comença
+        // amb un separador i l'elimina
+        } else if (ruta.startsWith(System.getProperty("file.separator")) 
+                || ruta.startsWith("/")) {
+            ruta = ruta.substring(1);
+        }
+
+        // Canvia els separadors de ruta per _
+        ruta = ruta.replaceAll("[/\\\\]", "_");
+        return ruta;
+    }
+
+    /**
+     * Dona un format a un string amb una data si aquest es válid i retorna el
+     * valor Date.
+     *
+     * @param date
+     * @return
+     */
+    public static Date dateFormat(String date) {
+        Date newDate = null;
+        try {
+            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+            newDate = dateFormat.parse(date);
+        } catch (ParseException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        return newDate;
+    }
+
+    public static Timestamp convertToTimeStamp(Date date) {
+        if (date != null) {
+            return new Timestamp(date.getTime());
+        }
+        return null;
+    }
+
+    /**
+     * Comproba si una data introduïda per text de l'usuari te un format válid.
+     *
+     * @param data
+     * @return
+     */
+    public static Boolean verificaData(String data) {
+        boolean check;
+        try {
+            SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
+            Date date = formatter.parse(data);
+            check = true;
+        } catch (ParseException e) {
+            check = false;
+        }
+        return check;
     }
 
     public static File documentToFile(Document document) throws IOException {
@@ -62,10 +156,19 @@ public class Utils {
         return file;
     }
 
-    public static String generateRepositoryName(File file) {
-        String path = file.toString().substring(3).replace("\\", "_");
-        return path;
+    public static void crearRuta(File destination, File fname, Boolean force) throws IOException {
+        if (destination.mkdirs()) {
+            System.out.println("Nueva ruta creada");
+            fname.createNewFile();
+        } else {
+            System.out.println("La ruta ya existe");
+            if (fname.exists()) {
+                if (force) {
+                    fname.createNewFile();
+                }
+            }
 
+        }
     }
 
     public static List<String> retornarExtension(){

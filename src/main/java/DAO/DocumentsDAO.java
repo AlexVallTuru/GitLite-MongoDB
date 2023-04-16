@@ -10,7 +10,6 @@ import Singleton.MongoConnection;
 
 import Utils.Ficheros;
 import Utils.Utils;
-import com.mongodb.DBObject;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.io.File;
@@ -25,11 +24,18 @@ import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
-import static Singleton.MongoConnection.*;
 import static Utils.Ficheros.*;
 import static Utils.Utils.*;
 
 import java.nio.file.NoSuchFileException;
+import static Utils.Utils.fileToDocument;
+import com.mongodb.client.model.Filters;
+import java.io.BufferedWriter;
+import java.io.IOException;
+import java.sql.Timestamp;
+import java.util.Date;
+import java.util.List;
+import org.bson.conversions.Bson;
 
 /**
  *
@@ -39,127 +45,101 @@ public class DocumentsDAO implements InterfaceDAO {
 
     File rem = null;
     String userHome = System.getProperty("user.home");
-    String fileSeparator = System.getProperty("file.separator");
     String userFolder = "getRepo1";
     String repositoryName = null;
-    MongoClient connection = MongoConnection.getInstance();
+    MongoClient connection = MongoConnection.getInstance().getDBClient();
     MongoDatabase repository = null;
     String idRemot = null;
-    MongoDatabase db = MongoConnection.getDataBase();
 
-    Path repoPath = getRepositoryPath();
-    String repoName = MongoConnection.getRepositoryName();
+    MongoConnection f = MongoConnection.getInstance();
+    MongoDatabase db = f.getDataBase();
+    Path repoPath = f.getRepositoryPath();
+    String repoName = f.getRepositoryName();
 
     MongoCollection<Document> collection = MongoConnection.getCollection();
 
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
-     * El nom de la ruta es la direcció del repositori localment, canviant els
-     * separadors de fitxers per _. Per exemple:
-     * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
-     * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
+     * El nom del repositori es la direcció del repositori localment formatat.
      *
      * @param ruta
      */
     @Override
     public void createRepository(String ruta) {
         System.out.println("Creant repositori...");
-        //Comproba si la ruta indicada per l'usuari existeix localment
         Path userPath = Paths.get(ruta);
-        String nomRepo = "";
+        // Obtenim el nom del repositori a partir de la ruta
+        String nomRepo = Utils.pathToRepoName(ruta);
         
-        if (Files.exists(userPath)) {
-            //Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
-            if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
-                nomRepo = ruta.substring(3);
-                
-            } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
-                nomRepo = ruta.substring(1);
-            }
+        //Emmagatzemar nom i ruta del repositori al singleton
+        f.setRepositoryName(nomRepo);
+        f.setRepositoryPath(userPath);
 
-            //Canvia els separadors de ruta per _
-            nomRepo = nomRepo.replaceAll("[/\\\\]", "_");
-            //Emmagatzemar nom i ruta del repositori al singleton
-            setRepositoryName(nomRepo);
-            setRepositoryPath(Paths.get(ruta));
-            
-            //Comprobem si la col·lecció ja existeix
-            boolean collectionExists;
-            try {
-                collectionExists = db.listCollectionNames()
-                        .into(new ArrayList<>()).contains(repoName);
-                
-                if (collectionExists) {
-                    System.out.println("ERROR: Aquest repositori ja existeix.");
-                    
-                } else {
-                    //Crea el nou repositori amb el nom de la ruta processada
-                    db.getCollection(repoName);
-                    System.out.println("Repositori creat correctament.");
-                    
-                    //Inserta un document amb la ruta del repositori
-                    Document del = new Document();
-                    del.append("ruta", repoPath);
-                    db.getCollection(repoName).insertOne(del);
-                }
-            } catch (MongoException ex) {
-                System.out.println("Error: " + ex.getMessage());
+        //Comprobem si la col·lecció ja existeix
+        boolean collectionExists;
+        try {
+            collectionExists = db.listCollectionNames()
+                    .into(new ArrayList<>()).contains(nomRepo);
+
+            if (collectionExists) {
+                // Si ja existeix, guardem el nom i ruta del repositori i continua
+                // al següent menú.
+                System.out.println("ERROR: Aquest repositori ja existeix. Accedint...");
+
+            } else {
+                //Crea el nou repositori amb el nom de la ruta processada
+                db.getCollection(nomRepo);
+                System.out.println("Repositori creat correctament.");
+
+                //Inserta un document amb la ruta del repositori
+                Document del = new Document();
+                del.append("ruta", f.getRepositoryPath().toString());
+                db.getCollection(nomRepo).insertOne(del);
             }
-        } else {
-            System.out.println("La ruta no existeix localment.");
+        } catch (MongoException ex) {
+            System.out.println("Error: " + ex.getMessage());
         }
+
     }
 
     /**
-     * Elimina un repositori indicat per l'usuari de la BBDD si aquest existeix.
-     *
-     * @param repositori
+     * Elimina el repositori actual de la BBDD.
      */
     @Override
-    public void dropRepository(String repositori) {
+    public void dropRepository() {
         try {
-            /**
-             * TODO Eliminar cuando la creacion de la BD este implementada
-             */
-            repository = connection.getDatabase("GETDB");
+            MongoCollection<Document> repositoryCollection = db
+                    .getCollection(f.getRepositoryName());
+            repositoryCollection.drop();
+            System.out.println("Repositori eliminat correctament.");
 
-            //Obtenim el repositori si existeix
-            boolean collectionExists = repository.listCollectionNames()
-                    .into(new ArrayList<>()).contains(repositori);
-            if (collectionExists) {
-                MongoCollection<Document> repositoryCollection = repository
-                        .getCollection(repositori);
-                repositoryCollection.drop();
-                System.out.println("Repositori eliminat correctament.");
-            } else {
-                System.out.println("El repositori "
-                        + repositori + " no existeix.");
-            }
         } catch (MongoException ex) {
             System.out.println("Excepció: " + ex.getMessage());
         }
     }
 
     @Override
-    public void pushFile(String file, String force) {
-        repositoryName = MongoConnection.getRepository();
-        repository = connection.getDatabase(repositoryName);
+    public void pushFile(String file, Boolean force) {
+
+        MongoDatabase repository = f.getDataBase();
+        File v = new File(file);
         try {
-            if (repository != null) {
-                MongoCollection<Document> doc = repository.getCollection(repositoryName);
+            if (!file.isEmpty()) {
+                MongoCollection<Document> doc = repository.getCollection(f.getRepositoryName());
                 File fichero = new File(file);
                 Document don = Utils.fileToDocument(fichero);
 
-                if (force.equals("1")) {
+                if (force) {
 
                     doc.insertOne(don);
 
                 } else {
-                    Ficheros.compareModifiedDate(fichero, doc);
+                    Ficheros.compareModifiedDate(f.getRepositoryPath(), fichero, doc);
                 }
 
             } else {
-                Ficheros.pushAllFiles(new File(String.join("\\", userHome, repositoryName)));
+
+                Ficheros.pushAllFiles(new File(f.getRepositoryPath().toString()), force);
             }
 
         } catch (Exception ex) {
@@ -168,13 +148,116 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void pullFile(String file) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    public void pullFile(String file, Boolean force) {
+
+        try {
+            MongoDatabase repository = f.getDataBase();
+            MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
+            String destinationFolder = String.join("", f.getRepositoryPath().toString(), file);
+
+            if (!file.isEmpty()) {
+                //String path = Ficheros.getAbsolutePath(f.getRepositoryPath(),pa);
+
+                Bson filter = Filters.eq("path", file);
+                Document documento = col.find(filter).first();
+                Fitxer fit = new Fitxer();
+                fit = fit.documentToObject(documento, destinationFolder);
+                File destination = new File(fit.getParentPath());
+                File fname = new File(destination, String.join(".", fit.getNomFitxer(), fit.getExtensio()));
+
+                if (force) {
+
+                    Utils.crearRuta(destination, fname, force);
+                    Ficheros.addContent(fname, fit.getContingut());
+
+                } else {
+                    if (fname.exists()) {
+                        Date lastRemote = documento.getDate("modificacio");
+                        Timestamp last = Utils.convertToTimeStamp(new Date(fname.lastModified()));
+                        Timestamp tsRemote = Utils.convertToTimeStamp(lastRemote);
+                        if (last.after(tsRemote)) {
+                            System.out.println("El fichero local ya esta actualizado");
+                        } else if (last.before(tsRemote)) {
+                            System.out.println("El fichero se ha actualizado");
+                            Ficheros.addContent(fname, fit.getContingut());
+                        } else {
+                            System.out.println("Son iguales");
+                        }
+                    } else {
+                        Utils.crearRuta(destination, fname, force);
+                        Ficheros.addContent(fname, fit.getContingut());
+                    }
+
+                }
+
+            } else {
+                //Pull recursivo
+
+            }
+        } catch (Exception e) {
+
+        }
+
+        //fname.createNewFile();
+        //} catch (IOException ex) {
+        //    Logger.getLogger(DocumentsDAO.class.getName()).log(Level.SEVERE, null, ex);
+        //}
     }
 
     @Override
-    public void cloneRepository(String file, String date) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public void cloneRepository(String date) {
+        //Comproba si el directori existeix localment per crear-lo
+        if (Files.notExists(f.getRepositoryPath())) {
+            try {
+                Files.createDirectories(f.getRepositoryPath());
+            } catch (IOException e) {
+                System.out.println("Error: " + e.getMessage());
+            }
+            System.out.println("Clonant repositori a " + f.getRepositoryPath());
+
+            // Obtenim un cursor amb tots els documents de la col·leccio
+            MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
+
+            while (cursor.hasNext()) {
+                // Iterem la col·leccio i afegim els documents a la llista
+                Document documento = cursor.next();
+                
+                // Saltem el primer document amb clau "ruta"
+                if (documento.containsKey("ruta")) {
+                    continue; 
+                }
+
+                // Comprovar si el fitxer es anterior a la data indicada per
+                // l'usuari, si aquest n'ha indicat una
+                if (!date.isBlank()) {
+                    Date newDate = Utils.dateFormat(date);
+                    Date docDate = documento.getDate("modificacio");
+                    // Si la data del document es mes nova que la indicada
+                    // no l'afegeix
+                    if (docDate.after(newDate)) {
+                        continue;
+                    }
+                }
+
+                // Comprovar si el document està en un subdirectori
+                Path filePath = f.getRepositoryPath().resolve(documento.getString("path").substring(1));
+                if (!Ficheros.checkSubdirectory(filePath)) {
+                    continue;
+                }
+                
+                // Escribim el document en un nou fitxer
+                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                    writer.write(documento.getString("contingut"));
+                    System.out.println("Clonat fitxer " + filePath);
+                } catch (IOException e) {
+                    System.out.println("Error: " + e.getMessage());
+                }
+            }
+
+        } else {
+            System.out.println("El repositori a clonar ja existeix localment,"
+                    + " eliminal i intenta-ho de nou.");
+        }
     }
 
     @Override
@@ -186,6 +269,7 @@ public class DocumentsDAO implements InterfaceDAO {
             compararUnicoArchivo(inputPathfile,containsDetails,detailLocalORemoto);
         }
     }
+    
     public void compararMultiplesArchivos (String inputPathfile, boolean containsDetails, boolean detailLocalORemoto){
 
         MongoCursor<Document> allFilesDb = collection.find(
@@ -266,10 +350,4 @@ public class DocumentsDAO implements InterfaceDAO {
         }
         compareTwoFiles(documentLocal,documentoDb,containsDetails, detailLocalORemoto);
     }
-    
-    @Override
-    public void cloneRepository(String file) {
-        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
-    }
-
 }

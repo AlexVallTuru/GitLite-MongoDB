@@ -7,7 +7,6 @@ package Logica;
 import DAO.DocumentsDAO;
 import Interfaces.InterfaceLogica;
 import java.io.File;
-import java.util.ArrayList;
 
 /**
  *
@@ -28,16 +27,16 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void dropRepository(String file) {
+    public void dropRepository() {
         try {
-            dao.dropRepository(file);
+            dao.dropRepository();
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     @Override
-    public void pushFile(String file,String force) {
+    public void pushFile(String file,Boolean force) {
         try {
             dao.pushFile(file,force);
         } catch (Exception e) {
@@ -46,9 +45,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public File pullFile(String file) {
+    public File pullFile(String file,Boolean force) {
         try {
-            //return dao.pullFile(file);
+            dao.pullFile(file,force);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -65,9 +64,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void cloneRepository(String file, String date) {
+    public void cloneRepository(String date) {
         try {
-            dao.cloneRepository(file, date);
+            dao.cloneRepository(date);
         } catch (Exception e) {
             e.printStackTrace();
         }

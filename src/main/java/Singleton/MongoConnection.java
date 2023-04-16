@@ -5,15 +5,14 @@
 package Singleton;
 
 import com.mongodb.MongoClient;
+
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.bson.Document;
 
 public class MongoConnection {
 
-    private static String repositoryFolder;
     private static MongoClient client;
     private static MongoConnection mongoClient;
     private static MongoDatabase dataBase;
@@ -33,15 +32,18 @@ public class MongoConnection {
 //        this.collection = dataBase.getCollection(repositoryName);
     }
 
-    public static MongoClient getInstance() {
+    public static MongoConnection getInstance() {
         if (mongoClient == null) {
             mongoClient = new MongoConnection();
+
         }
-        return client;
+        return mongoClient;
+
     }
 
-    public static void setNewRepository(String repository) {
-        repositoryFolder = repository;
+    public MongoClient getDBClient() {
+        return client;
+
     }
 
     public void setRepositoryName(String repositoryName) {
@@ -54,11 +56,7 @@ public class MongoConnection {
         this.repositoryPath = repositoryPath;
     }
 
-    public static String getRepository() {
-        return repositoryFolder;
-    }
-
-    public static MongoDatabase getDataBase() {
+    public MongoDatabase getDataBase() {
         return dataBase;
     }
 

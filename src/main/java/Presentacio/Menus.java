@@ -4,13 +4,16 @@
  */
 package Presentacio;
 
+import DAO.MenuDAO;
 import Logica.DocumentsLogica;
+import Logica.MenuLogica;
 import Singleton.MongoConnection;
-import com.mongodb.MongoClient;
+import Utils.Utils;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -20,12 +23,12 @@ import java.util.Scanner;
 public class Menus {
 
     private static DocumentsLogica logica = new DocumentsLogica();
-    private static MongoClient connection = MongoConnection.getInstance();
+    private static MongoConnection connection = MongoConnection.getInstance();
     private static MongoDatabase repository = null;
     private static File rem = null;
-    private static String ruta = System.getProperty("user.home");
-    private static String userFolder = "getRepo1";
-    private static String repositoryName = "home_user_getrepo2";
+    //private static String ruta = System.getProperty("user.home");
+    //private static String userFolder = "getRepo1";
+    //private static String repositoryName = "home_user_getrepo2";
     private static String idRemot = null;
 
     public static int menuPrincipal() {
@@ -34,9 +37,9 @@ public class Menus {
             Scanner in = new Scanner(System.in);
             System.out.print("""
                          || MENU ||
-                         1. CREATE
-                         2. DROP
-                         3. PUSH
+                         1. DROP
+                         2. PUSH
+                         3. PULL
                          4. COMPARE
                          5. CLONE
                          6. AYUDA
@@ -53,36 +56,91 @@ public class Menus {
     public static void menuCreate() {
         try {
             Scanner in = new Scanner(System.in);
-            System.out.println("Indicar ruta: ");
-            String ruta = in.nextLine();
+            boolean pathExists = false;
+            String ruta = null;
+            
+            //Comproba si existeix la ruta
+            while (!pathExists) {
+                System.out.println("Indicar ruta: ");
+                ruta = in.nextLine();
+                if (Files.exists(Paths.get(ruta))) {
+                    pathExists = true;
+                } else {
+                    System.out.println("La ruta no existeix, introdueix-la de nou");
+                }
+            }
+            
             logica.createRepository(ruta);
-
+            
+           int op =0; 
+           while(op!= 7){
+               op=Menus.menuPrincipal();
+               MenuLogica.repositoryOptions(op);
+           }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
     }
 
+    public static int menuInicio() {
+        try {
+            Scanner in = new Scanner(System.in);
+            System.out.println("""
+                           [INICIO]
+                           1. CREAR
+                           2. SELECCIONAR
+                           
+                           """);
+            return in.nextInt();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return 0;
+    }
+    
+    public static void selectRepository(){
+        try {
+            MenuDAO.repositoryList();
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+    }
+
     public static void menuDrop() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar repositori: ");
-        String ruta = in.nextLine();
-
-        logica.dropRepository(ruta);
-
+        System.out.println("Estás segur de que vols eliminar el repositori "
+                + "actual? [Si = 1, No = 2]");
+        Boolean check = Utils.verificaOpcio(in.nextInt());
+        
+        // Si l'usuari indica que no s'aborta l'operació
+        if (check) {
+            logica.dropRepository();
+        } else {
+            System.out.println("Operació cancel·lada");
+        }
     }
 
     public static void menuPush() {
+
+        System.out.println("[PUJAR FITXER]");
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: ");
+        System.out.println("[Indicar ruta]: ");
         String ruta = in.nextLine();
-        System.out.println("Indicar ruta: ");
-        String force = in.nextLine();
+        System.out.println("[Vols forçar?]: [S/N] ");
+        Boolean force = Utils.verificaOpcio(in.nextInt());
         logica.pushFile(ruta, force);
 
     }
 
     public static void menuPull() {
+        System.out.println("[DESCARREGA FITXER]");
+        Scanner in = new Scanner(System.in);
+        System.out.println("[Indicar ruta]: ");
+        String ruta = in.nextLine();
+        System.out.println("[Vols forçar?]: [S/N] ");
+        Boolean force = Utils.verificaOpcio(in.nextInt());
+        logica.pullFile(ruta, force);
 
     }
 
@@ -118,11 +176,17 @@ public class Menus {
 
     public static void menuClone() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar repositori: ");
-        String repo = in.nextLine();
-        System.out.println("Indica una data (opcional): ");
+        System.out.println("Indica una data en dd-MM-yyyy (opcional): ");
         String date = in.nextLine();
-        logica.cloneRepository(repo, date);
+        // Si l'usuari introdueix una data, comproba que tingui un format valid
+        if (!date.isBlank()) {
+            while (!Utils.verificaData(date) && !date.isBlank()) {
+                System.out.println("Format de la data incorrecte, introdueix-ho"
+                        + " de nou o no introdueixis res per continuar:");
+                date = in.nextLine();
+            }
+        }
+        logica.cloneRepository(date);
     }
 
     public static int menuAyuda() {
