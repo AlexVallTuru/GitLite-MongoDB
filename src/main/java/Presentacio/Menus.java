@@ -58,7 +58,7 @@ public class Menus {
             Scanner in = new Scanner(System.in);
             boolean pathExists = false;
             String ruta = null;
-            
+
             //Comproba si existeix la ruta
             while (!pathExists) {
                 System.out.println("Indicar ruta: ");
@@ -69,14 +69,14 @@ public class Menus {
                     System.out.println("La ruta no existeix, introdueix-la de nou");
                 }
             }
-            
+
             logica.createRepository(ruta);
-            
+
            int op =0; 
            while(op!= 7){
                op=Menus.menuPrincipal();
-               MenuLogica.repositoryOptions(op);
-           }
+                MenuLogica.repositoryOptions(op);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,7 +98,7 @@ public class Menus {
         }
         return 0;
     }
-    
+
     public static void selectRepository(){
         try {
             MenuDAO.repositoryList();
@@ -112,7 +112,7 @@ public class Menus {
         System.out.println("Estás segur de que vols eliminar el repositori "
                 + "actual? [Si = 1, No = 2]");
         Boolean check = Utils.verificaOpcio(in.nextInt());
-        
+
         // Si l'usuari indica que no s'aborta l'operació
         if (check) {
             logica.dropRepository();
@@ -192,12 +192,21 @@ public class Menus {
 
     public static void menuCreateAyuda() {
         System.out.println("""
-        WORK IN PROGRESS                   """);
+                           La funció de CREATE ens permet crear repositoris remotament a la base de dades a partir d'un repositori local. 
+                           És necessari que aquest repositori existeixi localment, i no és necessari que hi tingui cap contingut, 
+                           ja que es pujarà més endavant amb la funció de PULL.
+                           
+                           Instruccions:
+                           Introdueix la ruta al repositori, el programa crearà un repositori a partir d'aquesta ruta i 
+                           proporcionarà un nom a aquest a partir de la ruta.
+                           """);
     }
 
     public static void menuDropAyuda() {
         System.out.println("""
-              WORK IN PROGRESS             """);
+                           La funció DROP elimina el repositori seleccionat a l'inici del programa de la base de dades, 
+                           després d'obtenir la confirmació de l'usuari. No l'elimina localment.
+                           """);
 
     }
 
@@ -221,7 +230,14 @@ public class Menus {
 
     public static void menuCloneAyuda() {
         System.out.println("""
-                WORK IN PROGRESS           """);
+                           La funció CLONE clonarà el repositori seleccionat a l'inici del programa al sistema local, 
+                           si és que aquest encara no existeix localment. També permet clonar només els arxius creats abans 
+                           d'una data indicada per l'usuari.
+                           
+                           Instruccions:
+                           El programa demana a l'usuari una data en format dd-MM-yyyy, si no s'introdueix cap data, 
+                           el programa clonarà tots els arxius al repositori remot.
+                           """);
 
     }
 }

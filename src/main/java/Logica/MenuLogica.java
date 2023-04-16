@@ -26,7 +26,7 @@ public class MenuLogica {
                 case 5 ->
                     Menus.menuClone();
                 case 6 ->
-                    Menus.menuAyuda();
+                    getOptionAyuda(Menus.menuAyuda());
 
             }
 
