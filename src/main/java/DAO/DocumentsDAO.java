@@ -80,7 +80,7 @@ public class DocumentsDAO implements InterfaceDAO {
             if (collectionExists) {
                 // Si ja existeix, guardem el nom i ruta del repositori i continua
                 // al següent menú.
-                System.out.println("ERROR: Aquest repositori ja existeix. Accedint...");
+                System.out.println("Aquest repositori ja existeix. Accedint...");
 
             } else {
                 //Crea el nou repositori amb el nom de la ruta processada

@@ -63,10 +63,11 @@ public class Menus {
             while (!pathExists) {
                 System.out.println("Indicar ruta: ");
                 ruta = in.nextLine();
-                if (new File(ruta).exists()) {
+                if (new File(ruta).exists() && new File(ruta).isDirectory()) {
                     pathExists = true;
                 } else {
-                    System.out.println("La ruta no existeix, introdueix-la de nou");
+                    System.out.println("La ruta no existeix o apunta a un fitxer, "
+                            + "introdueix-la de nou");
                 }
             }
 
