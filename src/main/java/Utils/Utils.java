@@ -11,9 +11,10 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.sql.Timestamp;
-import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Date;
 import org.bson.Document;
@@ -24,6 +25,8 @@ import org.bson.Document;
  */
 public class Utils {
 
+    public static ArrayList<String> extensions = new ArrayList<String>(Arrays.asList("java", "txt", "xml", "html"));
+
     public static String getAbsolutePath(File file) {
         Path path = file.toPath().toAbsolutePath();
 
@@ -32,20 +35,26 @@ public class Utils {
     }
 
     public static Document fileToDocument(File file) throws IOException {
-        MongoConnection c = MongoConnection.getInstance();
-        Path path = c.getRepositoryPath();
-        String[] nom_i_extensio = file.getName().split("\\.");
-        String filePath = Ficheros.getAbsolutePath(path, file);
-        Document doc = new Document();
-        doc
-                .append("path", filePath)
-                .append("nom", nom_i_extensio[0])
-                .append("extensio", nom_i_extensio[1])
-                .append("tamany", Files.size(file.toPath()))
-                .append("modificacio", Utils.convertToTimeStamp(new Date(file.lastModified())))
-                .append("contingut", Ficheros.llegir(file));
 
-        return doc;
+        try {
+            MongoConnection c = MongoConnection.getInstance();
+            Path path = c.getRepositoryPath();
+            String[] nom_i_extensio = file.getName().split("\\.");
+            String filePath = Ficheros.getAbsolutePath(path, file);
+            Document doc = new Document();
+            doc
+                    .append("path", filePath)
+                    .append("nom", nom_i_extensio[0])
+                    .append("extensio", nom_i_extensio[1])
+                    .append("tamany", Files.size(file.toPath()))
+                    .append("modificacio", Utils.convertToTimeStamp(new Date(file.lastModified())))
+                    .append("contingut", Ficheros.llegir(file));
+            return doc;
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return null;
+
     }
 
     public static String generateRepositoryName(File file) {
@@ -61,11 +70,7 @@ public class Utils {
             opcio = in.nextInt();
 
         }
-        if (opcio == 1) {
-            return true;
-        } else {
-            return false;
-        }
+        return opcio == 1;
 
     }
     

@@ -4,16 +4,11 @@
  */
 package Presentacio;
 
-import DAO.MenuDAO;
 import Logica.DocumentsLogica;
 import Logica.MenuLogica;
 import Singleton.MongoConnection;
 import Utils.Utils;
-import com.mongodb.client.MongoDatabase;
 import java.io.File;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.Date;
 import java.util.Scanner;
 
 /**
@@ -22,21 +17,15 @@ import java.util.Scanner;
  */
 public class Menus {
 
-    private static DocumentsLogica logica = new DocumentsLogica();
-    private static MongoConnection connection = MongoConnection.getInstance();
-    private static MongoDatabase repository = null;
-    private static File rem = null;
-    //private static String ruta = System.getProperty("user.home");
-    //private static String userFolder = "getRepo1";
-    //private static String repositoryName = "home_user_getrepo2";
-    private static String idRemot = null;
+    private static final DocumentsLogica logica = new DocumentsLogica();
 
     public static int menuPrincipal() {
+        MongoConnection c = MongoConnection.getInstance();
 
         try {
             Scanner in = new Scanner(System.in);
-            System.out.print("""
-                         || MENU ||
+            System.out.print(String.format("""
+                         || MENU || Connectat a : %s
                          1. DROP
                          2. PUSH
                          3. PULL
@@ -44,7 +33,7 @@ public class Menus {
                          5. CLONE
                          6. AYUDA
                          7. SALIR
-                         """);
+                         """, c.getRepositoryName()));
             return in.nextInt();
 
         } catch (Exception e) {
@@ -73,9 +62,9 @@ public class Menus {
 
             logica.createRepository(ruta);
 
-           int op =0; 
-           while(op!= 7){
-               op=Menus.menuPrincipal();
+            int op = 0;
+            while (op != 7) {
+                op = Menus.menuPrincipal();
                 MenuLogica.repositoryOptions(op);
             }
         } catch (Exception e) {
@@ -99,14 +88,6 @@ public class Menus {
         return 0;
     }
 
-    public static void selectRepository(){
-        try {
-            MenuDAO.repositoryList();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
-    }
-
     public static void menuDrop() {
         Scanner in = new Scanner(System.in);
         System.out.println("Estás segur de que vols eliminar el repositori "
@@ -127,7 +108,7 @@ public class Menus {
         Scanner in = new Scanner(System.in);
         System.out.println("[Indicar ruta]: ");
         String ruta = in.nextLine();
-        System.out.println("[Vols forçar?]: [S/N] ");
+        System.out.println("[Vols forçar?]: [1-Si | 2-No] ");
         Boolean force = Utils.verificaOpcio(in.nextInt());
         logica.pushFile(ruta, force);
 
@@ -138,7 +119,7 @@ public class Menus {
         Scanner in = new Scanner(System.in);
         System.out.println("[Indicar ruta]: ");
         String ruta = in.nextLine();
-        System.out.println("[Vols forçar?]: [S/N] ");
+        System.out.println("[Vols forçar?]: [1-Si | 2-No] ");
         Boolean force = Utils.verificaOpcio(in.nextInt());
         logica.pullFile(ruta, force);
 
@@ -183,6 +164,7 @@ public class Menus {
         System.out.println("1. Documentación de la opción CREATE");
         System.out.println("2. Documentación de la opción DROP");
         System.out.println("3. Documentación de la opción PUSH");
+        System.out.println("3. Documentación de la opción PULL");
         System.out.println("4. Documentación de la opción COMPARE");
         System.out.println("5. Documentación de la opción CLONE");
         System.out.println("6. Volver al menú principal");
@@ -212,13 +194,38 @@ public class Menus {
 
     public static void menuPushAyuda() {
         System.out.println("""
-              WORK IN PROGRESS             """);
+        La funció PUSH ens permet pujar fitxers al repositori remot.
+        Els parametres que utilitzara son [nom_repositori] [ruta_del_fitxer_local] [force]
+        
+        - [nom_repositori] : Es crea automaticament al generar un repositori nou
+        - [ruta_del_fitxer_local] : Pasant una ruta absoluta del fitxer es crea automaticament una ruta relativa
+          que es guardara al remot
+        - [force] : Aquesta opció permet pujar el fitxer sense comparar les dates de modificacio dels fitxers i sera de tipus boolean
+          En el cas de que force sigui TRUE:
+                - El fitxer es pujarà i s'actualitzara
+          En el cas de que force sigui FALSE:
+                - Es revisara si existeix al repositori i només es pujara si el fitxer remot está desactualitzat
+                - Si no existeix al remot, es pujarà directament
+                           
+        """);
 
     }
 
     public static void menuPullAyuda() {
         System.out.println("""
-                WORK IN PROGRESS           """);
+        La funció PULL ens permet descarregar fitxers del repositori remot.
+        Els parametres que utilitzara son [nom_repositori] [ruta_del_fitxer_local] [force]
+                
+        - [nom_repositori] : Es crea automaticament al generar un repositori nou
+        - [ruta_del_fitxer_local] : Pasant una ruta absoluta del fitxer es crea automaticament una ruta relativa
+          que es guardarà al remot
+        - [force] : Aquesta opció permet descarregar el fitxer sense comparar les dates de modificació dels fitxers i serà de tipus boolean
+          En el cas de que force sigui TRUE:
+                - El fitxer es descarregarà i s'actualitzarà
+          En el cas de que force sigui FALSE:
+                - Es revisarà si existeix al repositori i només es descarregarà si el fitxer local está desactualitzat
+                - Si no existeix al local, es descarregarà directament
+                           """);
 
     }
 
