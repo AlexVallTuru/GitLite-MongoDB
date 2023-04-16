@@ -24,7 +24,6 @@ import java.util.Scanner;
  */
 public class Menus {
 
-    private static DocumentsLogica logica = new DocumentsLogica();
     private static MongoConnection connection = MongoConnection.getInstance();
     private static MongoDatabase repository = null;
     private static File rem = null;
@@ -84,17 +83,6 @@ public class Menus {
                 MenuLogica.repositoryOptions(op);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-        }
-
-            logica.createRepository(ruta);
-
-            int op = 0;
-            while (op != 7) {
-                op = Menus.menuPrincipal();
-                MenuLogica.repositoryOptions(op);
-            }
-        } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
         }
     }
@@ -113,14 +101,6 @@ public class Menus {
             System.out.println(e.getMessage());
         }
         return 0;
-    }
-
-    public static void selectRepository() {
-        try {
-            MenuDAO.repositoryList();
-        } catch (Exception e) {
-            System.out.println(e.getMessage());
-        }
     }
 
     public static void menuDrop() {

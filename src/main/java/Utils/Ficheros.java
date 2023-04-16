@@ -15,16 +15,12 @@ import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
 import java.sql.Date;
 import java.util.*;
-
-import java.util.Date;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
-import static Utils.Utils.documentToFile;
-import static Utils.Utils.fileToDocument;
 import java.nio.file.Files;
 import com.mongodb.client.MongoCursor;
 import java.nio.file.Path;

@@ -59,8 +59,6 @@ public class DocumentsDAO implements InterfaceDAO {
     Path repoPath = f.getRepositoryPath();
     String repoName = f.getRepositoryName();
 
-    MongoCollection<Document> collection = MongoConnection.getCollection();
-
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
      * El nom del repositori es la direcció del repositori localment formatat.
@@ -276,10 +274,10 @@ public class DocumentsDAO implements InterfaceDAO {
         MongoCursor<Document> allFilesDb = col.find(
                 new Document("extensio", new Document("$in", retornarExtension()))
         ).iterator();
-
+        MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
         ArrayList<Document> documentsDb = new ArrayList<>();
-        while (allFilesDb.hasNext()) {
-            documentsDb.add(allFilesDb.next());
+        while (cursor.hasNext()) {
+            documentsDb.add(cursor.next());
         }
         File directoryLocal = new File(f.getRepositoryPath().toUri());
         //Modificar funcion compareAllFiles
