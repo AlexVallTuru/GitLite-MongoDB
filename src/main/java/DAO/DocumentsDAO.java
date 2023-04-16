@@ -279,7 +279,7 @@ public class DocumentsDAO implements InterfaceDAO {
         while (allFilesDb.hasNext()) {
             documentsDb.add(allFilesDb.next());
         }
-        File directoryLocal = new File(getRepositoryPath().toUri());
+        File directoryLocal = new File(repoPath.toUri());
         List<File> fileList = compareAllFiles(directoryLocal);
         ArrayList<String> archivosNoEncontrados = new ArrayList<>();
         ArrayList<String> archivosEncontrados = new ArrayList<>();

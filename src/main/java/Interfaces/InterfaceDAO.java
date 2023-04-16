@@ -19,7 +19,7 @@ public interface InterfaceDAO {
     void dropRepository();
     void pushFile(String file,Boolean force);
     void pullFile(String file,Boolean force);
-    void compareFiles(String file, boolean containsDetails) throws Exception;
+    void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto);
     void cloneRepository(String date);
     
 }

@@ -9,9 +9,11 @@ import Logica.DocumentsLogica;
 import Logica.MenuLogica;
 import Singleton.MongoConnection;
 import Utils.Utils;
+import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Scanner;
@@ -26,10 +28,11 @@ public class Menus {
     private static MongoConnection connection = MongoConnection.getInstance();
     private static MongoDatabase repository = null;
     private static File rem = null;
-    //private static String ruta = System.getProperty("user.home");
-    //private static String userFolder = "getRepo1";
-    //private static String repositoryName = "home_user_getrepo2";
     private static String idRemot = null;
+    public static MongoConnection f = MongoConnection.getInstance();
+    public static MongoDatabase db = f.getDataBase();
+    public static Path repoPath = f.getRepositoryPath();
+    public static String repoName = f.getRepositoryName();
 
     public static int menuPrincipal() {
 
@@ -58,7 +61,7 @@ public class Menus {
             Scanner in = new Scanner(System.in);
             boolean pathExists = false;
             String ruta = null;
-            
+
             //Comproba si existeix la ruta
             while (!pathExists) {
                 System.out.println("Indicar ruta: ");
@@ -69,14 +72,14 @@ public class Menus {
                     System.out.println("La ruta no existeix, introdueix-la de nou");
                 }
             }
-            
+
             logica.createRepository(ruta);
-            
-           int op =0; 
-           while(op!= 7){
-               op=Menus.menuPrincipal();
-               MenuLogica.repositoryOptions(op);
-           }
+
+            int op = 0;
+            while (op != 7) {
+                op = Menus.menuPrincipal();
+                MenuLogica.repositoryOptions(op);
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -98,8 +101,8 @@ public class Menus {
         }
         return 0;
     }
-    
-    public static void selectRepository(){
+
+    public static void selectRepository() {
         try {
             MenuDAO.repositoryList();
         } catch (Exception e) {
@@ -112,7 +115,7 @@ public class Menus {
         System.out.println("Estás segur de que vols eliminar el repositori "
                 + "actual? [Si = 1, No = 2]");
         Boolean check = Utils.verificaOpcio(in.nextInt());
-        
+
         // Si l'usuari indica que no s'aborta l'operació
         if (check) {
             logica.dropRepository();
@@ -146,8 +149,8 @@ public class Menus {
 
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n" +
-                "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + MongoConnection.getRepositoryName() + ".");
+        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n "
+                + "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + repoName + ".");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
         String resultado = in.nextLine();
