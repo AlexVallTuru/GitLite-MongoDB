@@ -4,6 +4,7 @@
  */
 package Utils;
 
+import Logica.DocumentsLogica;
 import Model.Fitxer;
 import Singleton.MongoConnection;
 import com.mongodb.client.MongoCollection;
@@ -24,7 +25,6 @@ import org.bson.Document;
 import org.bson.conversions.Bson;
 
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
-import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCursor;
 import java.nio.file.Path;
 
@@ -33,6 +33,8 @@ import java.nio.file.Path;
  * @author carlo
  */
 public class Ficheros {
+
+    DocumentsLogica logica = new DocumentsLogica();
 
     public static String llegir(File file) throws FileNotFoundException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -76,19 +78,23 @@ public class Ficheros {
                 pushAllFiles(fitxers, force);
 
             } else {
-                //System.out.println("<Fichero> " + fitxers.getAbsolutePath());
-                if (!force) {
+                String extension = Ficheros.getExtensio(fitxers);
+                if (Utils.extensions.contains(extension)) {
+                    //System.out.println("<Fichero> " + fitxers.getAbsolutePath());
+                    if (!force) {
 
-                    if (Ficheros.compareModifiedDate(c.getRepositoryPath(), fitxers, col)) {
+                        if (Ficheros.compareModifiedDate(c.getRepositoryPath(), fitxers, col)) {
 
-                        Document update = Utils.fileToDocument(fitxers);
-                        String filter = Ficheros.getAbsolutePath(c.getRepositoryPath(), fitxers);
-                        col.replaceOne(Filters.eq("path", filter), update);
+                            Document update = Utils.fileToDocument(fitxers);
+                            String filter = Ficheros.getAbsolutePath(c.getRepositoryPath(), fitxers);
+                            col.replaceOne(Filters.eq("path", filter), update);
 
+                        }
+
+                    } else {
+                        col.insertOne(Utils.fileToDocument(fitxers));
                     }
 
-                } else {
-                    col.insertOne(Utils.fileToDocument(fitxers));
                 }
 
             }
@@ -280,7 +286,7 @@ public class Ficheros {
         MongoCollection mmc = mc.getDataBase().getCollection(mc.getRepositoryName());
 
         //Obtener fecha de modificacion del fichero local
-        Date d = fitxer.getDataModificacio();
+        Date d = new Date(new File(fitxer.getFilePath()).lastModified());
 
         //Convertirlo a timestamp
         Timestamp ts = Utils.convertToTimeStamp(d);
@@ -304,7 +310,7 @@ public class Ficheros {
 
                 return true;
             } else if (ts.after(ts2)) {
-                System.out.println(fitxer + " ya está actualizado");
+                System.out.println(fitxer.getNomFitxer() + "ya está actualizado");
 
             } else {
                 System.out.println("los ficheros son iguales");
@@ -317,7 +323,7 @@ public class Ficheros {
 
     }
 
-    public static void recursivePull() {
+    public static void recursivePull(Boolean force) throws IOException {
         MongoConnection con = MongoConnection.getInstance();
         String repositorio = con.getRepositoryPath().toString();
         MongoCollection col = con.getDataBase().getCollection(con.getRepositoryName());
@@ -325,7 +331,19 @@ public class Ficheros {
 
         while (doc.hasNext()) {
             Document g = doc.next();
-            System.out.println(g.toJson());
+            Fitxer v = new Fitxer();
+            String path = String.join("", repositorio, g.getString("path"));
+            String parent = new File(path).getParent();
+            v = v.documentToObject(g, path);
+            if (force) {
+                Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
+                Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+            } else {
+                if (Ficheros.checkDateForPull(v, g.getString("path"))) {
+                    Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
+                    Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+                }
+            }
 
         }
 

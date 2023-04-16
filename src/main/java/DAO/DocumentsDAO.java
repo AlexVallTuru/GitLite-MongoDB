@@ -26,8 +26,6 @@ import org.bson.Document;
 import static Utils.Ficheros.*;
 import static Utils.Utils.fileToDocument;
 import com.mongodb.client.model.Filters;
-import java.sql.Timestamp;
-import java.util.Date;
 import java.util.List;
 import org.bson.conversions.Bson;
 
@@ -99,8 +97,9 @@ public class DocumentsDAO implements InterfaceDAO {
 
                     //Inserta un document amb la ruta del repositori
                     Document del = new Document();
-                    del.append("ruta", repoPath);
+                    //del.append("ruta", f.getRepositoryPath().toString());
                     db.getCollection(nomRepo).insertOne(del);
+                    db.getCollection(nomRepo).deleteOne(del);
                 }
             } catch (MongoException ex) {
                 System.out.println("Error: " + ex.getMessage());
@@ -115,6 +114,7 @@ public class DocumentsDAO implements InterfaceDAO {
      *
      * @param repositori
      */
+    
     @Override
     public void dropRepository(String repositori) {
         try {
@@ -146,7 +146,8 @@ public class DocumentsDAO implements InterfaceDAO {
         MongoDatabase repository = f.getDataBase();
         File v = new File(file);
         try {
-            if (!file.isEmpty()) {
+            
+            if (!file.isEmpty() && v.exists()) {
                 MongoCollection<Document> doc = repository.getCollection(f.getRepositoryName());
                 File fichero = new File(file);
                 Document don = Utils.fileToDocument(fichero);
@@ -185,7 +186,8 @@ public class DocumentsDAO implements InterfaceDAO {
                 Document documento = col.find(filter).first();
                 Fitxer fit = new Fitxer();
                 fit = fit.documentToObject(documento, destinationFolder);
-                File destination = new File(fit.getParentPath());
+                String parent = new File(fit.getFilePath()).getParent();
+                File destination = new File(parent);
                 File fname = new File(destination, String.join(".", fit.getNomFitxer(), fit.getExtensio()));
 
                 //Forzar el pull
@@ -220,7 +222,7 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
 
             } else {
-                Ficheros.recursivePull();
+                Ficheros.recursivePull(force);
 
             }
         } catch (Exception e) {
