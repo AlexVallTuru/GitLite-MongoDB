@@ -5,6 +5,7 @@
 package Model;
 
 import java.io.File;
+import java.util.Date;
 import org.bson.Document;
 
 /**
@@ -19,18 +20,20 @@ public class Fitxer {
     private Long tamany;
     private String contingut;
     private String parent;
+    private Date dataModificacio;
 
     public Fitxer() {
 
     }
 
-    public Fitxer(String filePath, String nomFitxer, String extensio, Long tamany, String contingut,String parent) {
+    public Fitxer(String filePath, String nomFitxer, String extensio, Long tamany, String contingut,String parent,Date dataModificacio) {
         this.filePath = filePath;
         this.nomFitxer = nomFitxer;
         this.extensio = extensio;
         this.tamany = tamany;
         this.contingut = contingut;
         this.parent=parent;
+        this.dataModificacio = dataModificacio;
     }
 
     public String getFilePath() {
@@ -81,6 +84,14 @@ public class Fitxer {
         this.parent = contingut;
     }
 
+    public Date getDataModificacio() {
+        return dataModificacio;
+    }
+
+    public void setDataModificacio(Date dataModificacio) {
+        this.dataModificacio = dataModificacio;
+    }
+
     public Fitxer documentToObject(Document doc,String path) {
 
         Fitxer fitxer = new Fitxer();
@@ -90,6 +101,7 @@ public class Fitxer {
         fitxer.setExtensio(doc.getString("extensio"));
         fitxer.setContingut(doc.getString("contingut"));
         fitxer.setParentPath(new File(path).getParent());
+        fitxer.setDataModificacio(doc.getDate("modificacio"));
         return fitxer;
     }
 

@@ -4,6 +4,7 @@
  */
 package Logica;
 
+import DAO.MenuDAO;
 import Presentacio.Menus;
 
 /**
@@ -26,7 +27,7 @@ public class MenuLogica {
                 case 5 ->
                     Menus.menuClone();
                 case 6 ->
-                    Menus.menuAyuda();
+                    getOptionAyuda(Menus.menuAyuda());
 
             }
 
@@ -43,7 +44,7 @@ public class MenuLogica {
                     Menus.menuCreate();
 
                 case 2 ->
-                    Menus.selectRepository();
+                    selectRepository();
 
             }
 
@@ -51,6 +52,19 @@ public class MenuLogica {
             System.out.println(e.getMessage());
         }
 
+    }
+
+    public static void selectRepository() {
+        try {
+            MenuDAO.repositoryList();
+            int op = 0;
+            while (op != 7) {
+                op = Menus.menuPrincipal();
+                MenuLogica.repositoryOptions(op);
+            }
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
     }
 
     public static void getOptionAyuda(int option) {
@@ -63,10 +77,12 @@ public class MenuLogica {
                 case 3 ->
                     Menus.menuPushAyuda();
                 case 4 ->
-                    Menus.menuCompareAyuda();
+                    Menus.menuPullAyuda();
                 case 5 ->
-                    Menus.menuCloneAyuda();
+                    Menus.menuCompareAyuda();
                 case 6 ->
+                    Menus.menuCloneAyuda();
+                case 7 ->
                     Menus.menuPrincipal();
             }
 

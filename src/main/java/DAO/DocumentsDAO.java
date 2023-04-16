@@ -9,6 +9,8 @@ import Model.Fitxer;
 import Singleton.MongoConnection;
 
 import Utils.Ficheros;
+import static Utils.Ficheros.compareAllFiles;
+import static Utils.Ficheros.compareTwoFiles;
 import Utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
@@ -30,10 +32,11 @@ import static Utils.Utils.*;
 import java.nio.file.NoSuchFileException;
 import static Utils.Utils.fileToDocument;
 import com.mongodb.client.model.Filters;
+
 import java.io.BufferedWriter;
 import java.io.IOException;
-import java.sql.Timestamp;
 import java.util.Date;
+
 import java.util.List;
 import org.bson.conversions.Bson;
 
@@ -84,7 +87,7 @@ public class DocumentsDAO implements InterfaceDAO {
             if (collectionExists) {
                 // Si ja existeix, guardem el nom i ruta del repositori i continua
                 // al següent menú.
-                System.out.println("ERROR: Aquest repositori ja existeix. Accedint...");
+                System.out.println("Aquest repositori ja existeix. Accedint...");
 
             } else {
                 //Crea el nou repositori amb el nom de la ruta processada
@@ -95,9 +98,11 @@ public class DocumentsDAO implements InterfaceDAO {
                 Document del = new Document();
                 del.append("ruta", f.getRepositoryPath().toString());
                 db.getCollection(nomRepo).insertOne(del);
+                db.getCollection(nomRepo).deleteOne(del);
             }
         } catch (MongoException ex) {
             System.out.println("Error: " + ex.getMessage());
+
         }
 
     }
@@ -124,7 +129,8 @@ public class DocumentsDAO implements InterfaceDAO {
         MongoDatabase repository = f.getDataBase();
         File v = new File(file);
         try {
-            if (!file.isEmpty()) {
+
+            if (!file.isEmpty() && v.exists()) {
                 MongoCollection<Document> doc = repository.getCollection(f.getRepositoryName());
                 File fichero = new File(file);
                 Document don = Utils.fileToDocument(fichero);
@@ -156,34 +162,26 @@ public class DocumentsDAO implements InterfaceDAO {
             String destinationFolder = String.join("", f.getRepositoryPath().toString(), file);
 
             if (!file.isEmpty()) {
+                //Comprobar que no esta vacio
                 //String path = Ficheros.getAbsolutePath(f.getRepositoryPath(),pa);
 
                 Bson filter = Filters.eq("path", file);
                 Document documento = col.find(filter).first();
                 Fitxer fit = new Fitxer();
                 fit = fit.documentToObject(documento, destinationFolder);
-                File destination = new File(fit.getParentPath());
+                String parent = new File(fit.getFilePath()).getParent();
+                File destination = new File(parent);
                 File fname = new File(destination, String.join(".", fit.getNomFitxer(), fit.getExtensio()));
 
+                //Forzar el pull
                 if (force) {
 
                     Utils.crearRuta(destination, fname, force);
                     Ficheros.addContent(fname, fit.getContingut());
 
                 } else {
-                    if (fname.exists()) {
-                        Date lastRemote = documento.getDate("modificacio");
-                        Timestamp last = Utils.convertToTimeStamp(new Date(fname.lastModified()));
-                        Timestamp tsRemote = Utils.convertToTimeStamp(lastRemote);
-                        if (last.after(tsRemote)) {
-                            System.out.println("El fichero local ya esta actualizado");
-                        } else if (last.before(tsRemote)) {
-                            System.out.println("El fichero se ha actualizado");
-                            Ficheros.addContent(fname, fit.getContingut());
-                        } else {
-                            System.out.println("Son iguales");
-                        }
-                    } else {
+                    //Si no se fuerza se comprueba la fecha
+                    if (Ficheros.checkDateForPull(fit, file)) {
                         Utils.crearRuta(destination, fname, force);
                         Ficheros.addContent(fname, fit.getContingut());
                     }
@@ -191,19 +189,21 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
 
             } else {
-                //Pull recursivo
+                Ficheros.recursivePull(force);
 
             }
         } catch (Exception e) {
 
         }
 
-        //fname.createNewFile();
-        //} catch (IOException ex) {
-        //    Logger.getLogger(DocumentsDAO.class.getName()).log(Level.SEVERE, null, ex);
-        //}
     }
 
+    /**
+     * Clona el repositori actual de la BBDD al sistema, si aquest no existeix
+     * localment.
+     *
+     * @param date
+     */
     @Override
     public void cloneRepository(String date) {
         //Comproba si el directori existeix localment per crear-lo

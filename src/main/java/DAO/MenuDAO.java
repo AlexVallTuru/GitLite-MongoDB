@@ -5,11 +5,11 @@
 package DAO;
 
 import Singleton.MongoConnection;
-import com.mongodb.MongoClient;
 import com.mongodb.client.MongoDatabase;
 import com.mongodb.client.MongoIterable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 /**
  *
@@ -18,11 +18,19 @@ import java.util.List;
 public class MenuDAO {
     
     public static void repositoryList(){
-        MongoClient mc = MongoConnection.getInstance().getDBClient();
-        MongoDatabase bbdd = MongoConnection.getInstance().getDataBase();
+        int  i;
+        Scanner in = new Scanner(System.in);
+        
+        MongoConnection mc = MongoConnection.getInstance();
+        MongoDatabase bbdd = mc.getDataBase();
         MongoIterable<String> v = bbdd.listCollectionNames();
         List<String> f = v.into(new ArrayList<String>());
-        f.forEach(n -> System.out.println(n));
+        for (i = 0; i <f.size(); i++) {
+            System.out.println(String.format("%s - %s",i+1,f.get(i)));
+        }
+        int opcion = in.nextInt();
+        mc.setRepositoryName(f.get(opcion-1));
+        
 
     }
     

@@ -4,11 +4,11 @@
  */
 package Utils;
 
+import Logica.DocumentsLogica;
 import Model.Fitxer;
 import Singleton.MongoConnection;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.model.Filters;
-
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
@@ -16,18 +16,17 @@ import java.security.MessageDigest;
 import java.sql.Date;
 import java.util.*;
 
+import java.util.Date;
 import java.sql.Timestamp;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import org.bson.Document;
 import org.bson.conversions.Bson;
-
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
 import static Utils.Utils.documentToFile;
 import static Utils.Utils.fileToDocument;
 import java.nio.file.Files;
+import com.mongodb.client.MongoCursor;
 import java.nio.file.Path;
 
 /**
@@ -35,6 +34,8 @@ import java.nio.file.Path;
  * @author carlo
  */
 public class Ficheros {
+
+    DocumentsLogica logica = new DocumentsLogica();
 
     public static String llegir(File file) throws FileNotFoundException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
@@ -78,19 +79,23 @@ public class Ficheros {
                 pushAllFiles(fitxers, force);
 
             } else {
-                //System.out.println("<Fichero> " + fitxers.getAbsolutePath());
-                if (!force) {
+                String extension = Ficheros.getExtensio(fitxers);
+                if (Utils.extensions.contains(extension)) {
+                    //System.out.println("<Fichero> " + fitxers.getAbsolutePath());
+                    if (!force) {
 
-                    if (Ficheros.compareModifiedDate(c.getRepositoryPath(), fitxers, col)) {
+                        if (Ficheros.compareModifiedDate(c.getRepositoryPath(), fitxers, col)) {
 
-                        Document update = Utils.fileToDocument(fitxers);
-                        String filter = Ficheros.getAbsolutePath(c.getRepositoryPath(), fitxers);
-                        col.replaceOne(Filters.eq("path", filter), update);
+                            Document update = Utils.fileToDocument(fitxers);
+                            String filter = Ficheros.getAbsolutePath(c.getRepositoryPath(), fitxers);
+                            col.replaceOne(Filters.eq("path", filter), update);
 
+                        }
+
+                    } else {
+                        col.insertOne(Utils.fileToDocument(fitxers));
                     }
 
-                } else {
-                    col.insertOne(Utils.fileToDocument(fitxers));
                 }
 
             }
@@ -296,13 +301,13 @@ public class Ficheros {
         bw.close();
 
     }
-    
+
     /**
      * Comprova si un fitxer d'un document es troba a un subdirectori del
      * repositori.
-     * 
+     *
      * @param filePath
-     * @return 
+     * @return
      */
     public static boolean checkSubdirectory(Path filePath) {
         boolean check = true;
@@ -318,33 +323,75 @@ public class Ficheros {
         return check;
     }
 
-   /* public static void checkDateForPull(Fitxer fitxer, Boolean force) {
-        Date d = new Date(fitxer);
-        String pathRepositorio = Ficheros.getAbsolutePath(path, file);
+    public static boolean checkDateForPull(Fitxer fitxer, String rutaRemota) {
+        //Obtener conexion
+        MongoConnection mc = MongoConnection.getInstance();
+
+        //Obtener coleccion de singleton
+        MongoCollection mmc = mc.getDataBase().getCollection(mc.getRepositoryName());
+
+        //Obtener fecha de modificacion del fichero local
+        Date d = new Date(new File(fitxer.getFilePath()).lastModified());
+
+        //Convertirlo a timestamp
         Timestamp ts = Utils.convertToTimeStamp(d);
-        Bson filter = Filters.and(Filters.eq("path", pathRepositorio), Filters.exists("path", true));
-        Document c = (Document) collection.find(filter).first();
+
+        //Aplicar filtro para encontrar si existe en remoto
+        Bson filter = Filters.and(Filters.eq("path", rutaRemota), Filters.exists("path", true));
+        //Recoger el resultado de la busqueda
+        Document c = (Document) mmc.find(filter).first();
+
+        //Verificar que existe en el repositorio
         if (c == null) {
             System.out.println("No s'ha trovat el fitxer al repositori. Es pujara automaticament");
-            collection.insertOne(Utils.fileToDocument(file));
+
         } else {
+            //Si se encuentra un resultado convertir la fecha a timestamp
             Timestamp ts2 = Utils.convertToTimeStamp(c.getDate("modificacio"));
 
-            if (d.after(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
-                System.out.println(file.getName() + " se ha actualizado");
+            //Comparar fecha local con la fecha del fichero remoto
+            if (ts.before(ts2)) {
+                System.out.println(fitxer + " se ha actualizado");
 
                 return true;
-            } else if (d.before(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
-                System.out.println("El fichero remoto es posterior, actualiza el local");
-                return false;
+            } else if (ts.after(ts2)) {
+                System.out.println(fitxer.getNomFitxer() + "ya está actualizado");
+
             } else {
                 System.out.println("los ficheros son iguales");
+
             }
 
         }
 
         return false;
+    }
 
-    }*/
+    public static void recursivePull(Boolean force) throws IOException {
+        MongoConnection con = MongoConnection.getInstance();
+        String repositorio = con.getRepositoryPath().toString();
+        MongoCollection col = con.getDataBase().getCollection(con.getRepositoryName());
+        System.out.println(con.getRepositoryName());
+        MongoCursor<Document> doc = col.find().iterator();
+
+        while (doc.hasNext()) {
+            Document g = doc.next();
+            Fitxer v = new Fitxer();
+            String path = String.join("", repositorio, g.getString("path"));
+            String parent = new File(path).getParent();
+            v = v.documentToObject(g, path);
+            if (force) {
+                Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
+                Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+            } else {
+                if (Ficheros.checkDateForPull(v, g.getString("path"))) {
+                    Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
+                    Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+                }
+            }
+
+        }
+
+    }
 
 }
