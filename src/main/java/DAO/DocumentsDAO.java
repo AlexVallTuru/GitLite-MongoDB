@@ -211,7 +211,7 @@ public class DocumentsDAO implements InterfaceDAO {
             } catch (IOException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-            System.out.println("Clonando el repositorio en " 
+            System.out.println("Clonando el repositorio en "
                     + f.getRepositoryPath());
 
             // Obtenim un cursor amb tots els documents de la col·leccio
@@ -296,8 +296,9 @@ public class DocumentsDAO implements InterfaceDAO {
             for (Document documentoDb : documentsDb) {
                 for (File localFile : fileList) {
                     String localPath = formatPath(localFile.getPath());
-                    String ServerPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
-                    if (localPath.equals(ServerPath)) {
+                    String serverPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
+                    String serverPathSec = repoPath.toString() + documentoDb.getString("path");
+                    if (localPath.equals(serverPath) || localPath.equals(serverPathSec)) {
                         archivosEncontrados.add(localFile.getName());
                         System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
                         try {
@@ -315,8 +316,9 @@ public class DocumentsDAO implements InterfaceDAO {
             for (File localFile : fileList) {
                 for (Document documentoDb : documentsDb) {
                     String localPath = formatPath(localFile.getPath());
-                    String ServerPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
-                    if (ServerPath.equals(localPath)) {
+                    String serverPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
+                    String serverPathSec = repoPath.toString() + documentoDb.getString("path");
+                    if (localPath.equals(serverPath) || localPath.equals(serverPathSec)) {
                         archivosEncontrados.add(documentoDb.getString("nom"));
                         System.out.print("Comparación del archivo " + documentoDb.getString("nom") + " (remoto a local).\n");
                         try {
