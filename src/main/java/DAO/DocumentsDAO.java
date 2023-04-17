@@ -269,11 +269,10 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     public void compararMultiplesArchivos(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+        String repoName = f.getRepositoryName();
+        Path repoPath = f.getRepositoryPath();
         MongoDatabase repository = f.getDataBase();
         MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
-        MongoCursor<Document> allFilesDb = col.find(
-                new Document("extensio", new Document("$in", retornarExtension()))
-        ).iterator();
         MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
         ArrayList<Document> documentsDb = new ArrayList<>();
         while (cursor.hasNext()) {
@@ -300,7 +299,9 @@ public class DocumentsDAO implements InterfaceDAO {
             //DE LOCAL A REMOTO
             for (Document documentoDb : documentsDb) {
                 for (File localFile : fileList) {
-                    if (formatPath(localFile.getPath()).equals(documentoDb.getString("path"))) {
+                    String localPath = formatPath(localFile.getPath());
+                    String ServerPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
+                    if (localPath.equals(ServerPath)) {
                         archivosEncontrados.add(localFile.getName());
                         System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
                         try {
@@ -317,7 +318,9 @@ public class DocumentsDAO implements InterfaceDAO {
             //DE REMOTO A LOCAL
             for (File localFile : fileList) {
                 for (Document documentoDb : documentsDb) {
-                    if (documentoDb.getString("path").equals(formatPath(localFile.getPath()))) {
+                    String localPath = formatPath(localFile.getPath());
+                    String ServerPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
+                    if (ServerPath.equals(localPath)) {
                         archivosEncontrados.add(documentoDb.getString("nom"));
                         System.out.print("Comparación del archivo " + documentoDb.getString("nom") + " (remoto a local).\n");
                         try {

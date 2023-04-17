@@ -142,7 +142,7 @@ public class Menus {
 
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n "
+        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n"
                 + "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + f.getRepositoryName() + ".");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
@@ -258,9 +258,29 @@ public class Menus {
 
     public static void menuCompareAyuda() {
         System.out.println("""
-                 WORK IN PROGRESS          """);
+        La función 'compare' compara los contenidos de los archivos locales con sus equivalentes remotos e informa al usuario. El formato de la función es el siguiente:
 
-    }
+            COMPARE dir_base [archivo] [detalle]
+
+        Donde:
+
+            - dir_base: es el directorio base que se comparará.
+            - [archivo]: es el archivo específico que se comparará. Si se omite este parámetro, se comparará todo el directorio de forma recursiva.
+            - [detalle]: si se activa, se mostrará la información detallada de la comparación.
+
+        Los resultados posibles son:
+
+            - El archivo remoto no existe.
+            - El archivo local no existe.
+            - El local y el remoto tienen exactamente el mismo timestamp, son iguales.
+            - El local y el remoto NO tienen el mismo timestamp o NO tienen el mismo contenido. Es decir, son diferentes.
+
+        Si el parámetro [detalle] está activado y si el resultado es que el local y el remoto NO tienen el mismo timestamp o no tienen el mismo contenido, entonces se comparan línea por línea los dos archivos y se muestran las diferencias. La comparación se realiza de la siguiente forma:
+
+            - De local a remoto: para todas las líneas, busca cada una del archivo local en el archivo remoto. Si no la encuentra (en cualquier posición) la muestra como modificada o eliminada, incluyendo su número de línea.
+            - De remoto a local: idéntico, en sentido inverso.
+            """);
+            }
 
     public static void menuCloneAyuda() {
         System.out.println("""

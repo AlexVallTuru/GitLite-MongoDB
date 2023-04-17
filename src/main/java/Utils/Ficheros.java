@@ -123,7 +123,7 @@ public class Ficheros {
     public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean detailLocalORemoto) {
 
         try {
-            if (compareTwoTimeStamp(localDoc, dbDoc)) {
+            if (compareTwoTimeStamp(localDoc, dbDoc) && sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!\n\n");
             } else if (sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
                 System.out.print("Son iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");

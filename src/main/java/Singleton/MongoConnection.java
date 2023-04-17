@@ -26,10 +26,6 @@ public class MongoConnection {
         this.client = new MongoClient("localhost", 27017);
         this.dataBase = client.getDatabase("GETBD");
 
-        //CODIGO HARDCODEADO - SE TIENE QUE IMPLEMENTAR A TRAVES DE FUNCIONES
-//        this.repositoryName = "Users_avall_Desktop";
-//        this.repositoryPath = Paths.get("\\Users\\avall\\Desktop\\");
-//        this.collection = dataBase.getCollection(repositoryName);
     }
 
     public static MongoConnection getInstance() {
