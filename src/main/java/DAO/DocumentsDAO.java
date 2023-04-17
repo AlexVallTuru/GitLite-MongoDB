@@ -41,18 +41,18 @@ import org.bson.conversions.Bson;
  */
 public class DocumentsDAO implements InterfaceDAO {
 
-    File rem = null;
-    String userHome = System.getProperty("user.home");
-    String userFolder = "getRepo1";
-    String repositoryName = null;
-    MongoClient connection = MongoConnection.getInstance().getDBClient();
-    MongoDatabase repository = null;
-    String idRemot = null;
+    //File rem = null;
+    //String userHome = System.getProperty("user.home");
+    //String userFolder = "getRepo1";
+    //String repositoryName = null;
+    //MongoClient connection = MongoConnection.getInstance().getDBClient();
+    //MongoDatabase repository = null;
+    //String idRemot = null;
 
-    MongoConnection f = MongoConnection.getInstance();
-    MongoDatabase db = f.getDataBase();
-    Path repoPath = f.getRepositoryPath();
-    String repoName = f.getRepositoryName();
+    MongoConnection mongoConnection = MongoConnection.getInstance();
+    MongoDatabase database = mongoConnection.getDataBase();
+    Path repositoryPath = mongoConnection.getRepositoryPath();
+    //String repoName = mongoConnection.getRepositoryName();
 
     MongoCollection<Document> collection = MongoConnection.getCollection();
 
@@ -70,13 +70,13 @@ public class DocumentsDAO implements InterfaceDAO {
         String nomRepo = Utils.pathToRepoName(ruta);
 
         //Emmagatzemar nom i ruta del repositori al singleton
-        f.setRepositoryName(nomRepo);
-        f.setRepositoryPath(userPath);
+        mongoConnection.setRepositoryName(nomRepo);
+        mongoConnection.setRepositoryPath(userPath);
 
         //Comprobem si la col·lecció ja existeix
         boolean collectionExists;
         try {
-            collectionExists = db.listCollectionNames()
+            collectionExists = database.listCollectionNames()
                     .into(new ArrayList<>()).contains(nomRepo);
 
             if (collectionExists) {
@@ -86,14 +86,14 @@ public class DocumentsDAO implements InterfaceDAO {
 
             } else {
                 //Crea el nou repositori amb el nom de la ruta processada
-                db.getCollection(nomRepo);
+                database.getCollection(nomRepo);
                 System.out.println("Repositori creat correctament.");
 
                 //Inserta un document amb la ruta del repositori
                 Document del = new Document();
-                del.append("ruta", f.getRepositoryPath().toString());
-                db.getCollection(nomRepo).insertOne(del);
-                db.getCollection(nomRepo).deleteOne(del);
+                del.append("ruta", mongoConnection.getRepositoryPath().toString());
+                database.getCollection(nomRepo).insertOne(del);
+                database.getCollection(nomRepo).deleteOne(del);
             }
         } catch (MongoException ex) {
             System.out.println("Error: " + ex.getMessage());
@@ -108,8 +108,8 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void dropRepository() {
         try {
-            MongoCollection<Document> repositoryCollection = db
-                    .getCollection(f.getRepositoryName());
+            MongoCollection<Document> repositoryCollection = database
+                    .getCollection(mongoConnection.getRepositoryName());
             repositoryCollection.drop();
             System.out.println("Repositori eliminat correctament.");
 
@@ -118,15 +118,21 @@ public class DocumentsDAO implements InterfaceDAO {
         }
     }
 
+    /**
+     * Funcion para subir ficheros al repositorio remoto
+     *
+     * @param file
+     * @param force
+     */
     @Override
     public void pushFile(String file, Boolean force) {
 
-        MongoDatabase repository = f.getDataBase();
+        MongoDatabase repository = mongoConnection.getDataBase();
         File v = new File(file);
         try {
 
             if (!file.isEmpty() && v.exists()) {
-                MongoCollection<Document> doc = repository.getCollection(f.getRepositoryName());
+                MongoCollection<Document> doc = repository.getCollection(mongoConnection.getRepositoryName());
                 File fichero = new File(file);
                 Document don = Utils.fileToDocument(fichero);
 
@@ -135,12 +141,12 @@ public class DocumentsDAO implements InterfaceDAO {
                     doc.insertOne(don);
 
                 } else {
-                    Ficheros.compareModifiedDate(f.getRepositoryPath(), fichero, doc);
+                    Ficheros.compareModifiedDate(mongoConnection.getRepositoryPath(), fichero, doc);
                 }
 
             } else {
 
-                Ficheros.pushAllFiles(new File(f.getRepositoryPath().toString()), force);
+                Ficheros.pushAllFiles(new File(mongoConnection.getRepositoryPath().toString()), force);
             }
 
         } catch (Exception ex) {
@@ -148,17 +154,24 @@ public class DocumentsDAO implements InterfaceDAO {
         }
     }
 
+    /**
+     * Funcion para descargar los ficheros del repositorio remoto
+     *
+     * @param file
+     * @param force
+     */
+
     @Override
     public void pullFile(String file, Boolean force) {
 
         try {
-            MongoDatabase repository = f.getDataBase();
-            MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
-            String destinationFolder = String.join("", f.getRepositoryPath().toString(), file);
+            MongoDatabase repository = mongoConnection.getDataBase();
+            MongoCollection<Document> col = repository.getCollection(mongoConnection.getRepositoryName());
+            String destinationFolder = String.join("", mongoConnection.getRepositoryPath().toString(), file);
 
             if (!file.isEmpty()) {
                 //Comprobar que no esta vacio
-                //String path = Ficheros.getAbsolutePath(f.getRepositoryPath(),pa);
+                //String path = Ficheros.getAbsolutePath(mongoConnection.getRepositoryPath(),pa);
 
                 Bson filter = Filters.eq("path", file);
                 Document documento = col.find(filter).first();
@@ -188,6 +201,7 @@ public class DocumentsDAO implements InterfaceDAO {
 
             }
         } catch (Exception e) {
+            System.out.println(e.getMessage());
 
         }
 
@@ -202,16 +216,16 @@ public class DocumentsDAO implements InterfaceDAO {
     @Override
     public void cloneRepository(String date) {
         //Comproba si el directori existeix localment per crear-lo
-        if (Files.notExists(f.getRepositoryPath())) {
+        if (Files.notExists(mongoConnection.getRepositoryPath())) {
             try {
-                Files.createDirectories(f.getRepositoryPath());
+                Files.createDirectories(mongoConnection.getRepositoryPath());
             } catch (IOException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-            System.out.println("Clonant repositori a " + f.getRepositoryPath());
+            System.out.println("Clonant repositori a " + mongoConnection.getRepositoryPath());
 
             // Obtenim un cursor amb tots els documents de la col·leccio
-            MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
+            MongoCursor<Document> cursor = database.getCollection(mongoConnection.getRepositoryName()).find().iterator();
 
             while (cursor.hasNext()) {
                 // Iterem la col·leccio i afegim els documents a la llista
@@ -235,13 +249,13 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
 
                 // Comprovar si el document està en un subdirectori
-                Path filePath = f.getRepositoryPath().resolve(documento.getString("path").substring(1));
+                Path filePath = mongoConnection.getRepositoryPath().resolve(documento.getString("path").substring(1));
                 if (!Ficheros.checkSubdirectory(filePath)) {
                     continue;
                 }
 
                 // Escribim el document en un nou fitxer
-                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                try ( BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
                     System.out.println("Clonat fitxer " + filePath);
                 } catch (IOException e) {
@@ -265,7 +279,7 @@ public class DocumentsDAO implements InterfaceDAO {
             while (allFilesDb.hasNext()) {
                 documentsDb.add(allFilesDb.next());
             }
-            File directoryLocal = new File(f.getRepositoryPath().toUri());
+            File directoryLocal = new File(mongoConnection.getRepositoryPath().toUri());
             //TODO FILTRAR DOCUMENTOS QUE SEAN TXT XML ..... (Actualmente solo se filtran *.txt)
             List<File> fileList = compareAllFiles(directoryLocal);
 
@@ -280,7 +294,7 @@ public class DocumentsDAO implements InterfaceDAO {
 
         } else {
             Path secondPath = Paths.get(inputPathfile);
-            Path resolvedPath = repoPath.resolve(secondPath);
+            Path resolvedPath = repositoryPath.resolve(secondPath);
 
             File localFile = new File(resolvedPath.toString());
 

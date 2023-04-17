@@ -27,6 +27,11 @@ public class Utils {
 
     public static ArrayList<String> extensions = new ArrayList<String>(Arrays.asList("java", "txt", "xml", "html"));
 
+    /**
+     * Obtener ruta absoluta
+     * @param file
+     * @return 
+     */
     public static String getAbsolutePath(File file) {
         Path path = file.toPath().toAbsolutePath();
 
@@ -34,6 +39,12 @@ public class Utils {
 
     }
 
+    /**
+     * Conversor de fichero a documento MongoDB
+     * @param file
+     * @return
+     * @throws IOException 
+     */
     public static Document fileToDocument(File file) throws IOException {
 
         try {
@@ -63,10 +74,15 @@ public class Utils {
 
     }
 
+    /**
+     * Verificar opcion dada en los menus forzar
+     * @param opcio
+     * @return 
+     */
     public static Boolean verificaOpcio(int opcio) {
         Scanner in = new Scanner(System.in);
         while (opcio != 1 && opcio != 2) {
-            System.out.println("Opcio no valida");
+            System.out.println("Opcion no valida");
             opcio = in.nextInt();
 
         }

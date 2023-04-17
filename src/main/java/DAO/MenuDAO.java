@@ -17,19 +17,22 @@ import java.util.Scanner;
  */
 public class MenuDAO {
     
+    /**
+     * Funcion para listar los repositorios remotos disponibles
+     */
     public static void repositoryList(){
         int  i;
         Scanner in = new Scanner(System.in);
         
-        MongoConnection mc = MongoConnection.getInstance();
-        MongoDatabase bbdd = mc.getDataBase();
-        MongoIterable<String> v = bbdd.listCollectionNames();
-        List<String> f = v.into(new ArrayList<String>());
-        for (i = 0; i <f.size(); i++) {
-            System.out.println(String.format("%s - %s",i+1,f.get(i)));
+        MongoConnection mongoConnection = MongoConnection.getInstance();
+        MongoDatabase database = mongoConnection.getDataBase();
+        MongoIterable<String> documentsListIterable = database.listCollectionNames();
+        List<String> documentsList = documentsListIterable.into(new ArrayList<String>());
+        for (i = 0; i <documentsList.size(); i++) {
+            System.out.println(String.format("%s - %s",i+1,documentsList.get(i)));
         }
         int opcion = in.nextInt();
-        mc.setRepositoryName(f.get(opcion-1));
+        mongoConnection.setRepositoryName(documentsList.get(opcion-1));
         
 
     }

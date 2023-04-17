@@ -25,7 +25,7 @@ public class Menus {
         try {
             Scanner in = new Scanner(System.in);
             System.out.print(String.format("""
-                         || MENU || Connectat a : %s
+                         || MENU || Conectat a : %s
                          1. DROP
                          2. PUSH
                          3. PULL
@@ -83,7 +83,7 @@ public class Menus {
                            """);
             return in.nextInt();
         } catch (Exception e) {
-            System.out.println(e.getMessage());
+            System.out.println("El valor introducido no es valido");
         }
         return 0;
     }
@@ -103,25 +103,33 @@ public class Menus {
     }
 
     public static void menuPush() {
+        try {
+            System.out.println("[SUBIR FICHERO]");
+            Scanner in = new Scanner(System.in);
+            System.out.println("[Indicar ruta]: ");
+            String ruta = in.nextLine();
+            System.out.println("[¿Quieres forzar?]: [1-Si | 2-No] ");
+            Boolean force = Utils.verificaOpcio(in.nextInt());
+            logica.pushFile(ruta, force);
 
-        System.out.println("[PUJAR FITXER]");
-        Scanner in = new Scanner(System.in);
-        System.out.println("[Indicar ruta]: ");
-        String ruta = in.nextLine();
-        System.out.println("[Vols forçar?]: [1-Si | 2-No] ");
-        Boolean force = Utils.verificaOpcio(in.nextInt());
-        logica.pushFile(ruta, force);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
     }
 
     public static void menuPull() {
-        System.out.println("[DESCARREGA FITXER]");
-        Scanner in = new Scanner(System.in);
-        System.out.println("[Indicar ruta]: ");
-        String ruta = in.nextLine();
-        System.out.println("[Vols forçar?]: [1-Si | 2-No] ");
-        Boolean force = Utils.verificaOpcio(in.nextInt());
-        logica.pullFile(ruta, force);
+        try {
+            System.out.println("[DESCARGAR FICHERO]");
+            Scanner in = new Scanner(System.in);
+            System.out.println("[Indicar ruta]: ");
+            String ruta = in.nextLine();
+            System.out.println("[¿Quieres forzar?]: [1-Si | 2-No] ");
+            Boolean force = Utils.verificaOpcio(in.nextInt());
+            logica.pullFile(ruta, force);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
 
     }
 
@@ -194,18 +202,18 @@ public class Menus {
 
     public static void menuPushAyuda() {
         System.out.println("""
-        La funció PUSH ens permet pujar fitxers al repositori remot.
-        Els parametres que utilitzara son [nom_repositori] [ruta_del_fitxer_local] [force]
-        
-        - [nom_repositori] : Es crea automaticament al generar un repositori nou
-        - [ruta_del_fitxer_local] : Pasant una ruta absoluta del fitxer es crea automaticament una ruta relativa
-          que es guardara al remot
-        - [force] : Aquesta opció permet pujar el fitxer sense comparar les dates de modificacio dels fitxers i sera de tipus boolean
-          En el cas de que force sigui TRUE:
-                - El fitxer es pujarà i s'actualitzara
-          En el cas de que force sigui FALSE:
-                - Es revisara si existeix al repositori i només es pujara si el fitxer remot está desactualitzat
-                - Si no existeix al remot, es pujarà directament
+            La función PUSH nos permite subir archivos al repositorio remoto.
+                    Los parámetros que utilizara son [nombre_repositorio] [ruta_del archivo_local] [force]
+                    
+                    - [nombre_repositorio] : Se crea automáticamente al generar un repositorio nuevo
+                    - [ruta_del_archivo_local] : Pasando una ruta absoluta del archivo se crea automáticamente una ruta relativa
+                      que se guardara en el remoto
+                    - [force] : Esta opción permite subir el archivo sin comparar las fechas de modificación de los archivos y será de tipo boolean
+                      En caso de que force sea TRUE:
+                            - El archivo se subirá y se actualizará
+                      En caso de que force sea FALSE:
+                            - Se revisará si existe en el repositorio y sólo se subirá si el archivo remoto está desactualizado
+                            - Si no existe en el remoto, se subirá directamente
                            
         """);
 
@@ -213,18 +221,18 @@ public class Menus {
 
     public static void menuPullAyuda() {
         System.out.println("""
-        La funció PULL ens permet descarregar fitxers del repositori remot.
-        Els parametres que utilitzara son [nom_repositori] [ruta_del_fitxer_local] [force]
-                
-        - [nom_repositori] : Es crea automaticament al generar un repositori nou
-        - [ruta_del_fitxer_local] : Pasant una ruta absoluta del fitxer es crea automaticament una ruta relativa
-          que es guardarà al remot
-        - [force] : Aquesta opció permet descarregar el fitxer sense comparar les dates de modificació dels fitxers i serà de tipus boolean
-          En el cas de que force sigui TRUE:
-                - El fitxer es descarregarà i s'actualitzarà
-          En el cas de que force sigui FALSE:
-                - Es revisarà si existeix al repositori i només es descarregarà si el fitxer local está desactualitzat
-                - Si no existeix al local, es descarregarà directament
+        La función PULL nos permite descargar archivos del repositorio remoto.
+        Los parámetros que utilizara son [nombre_repositorio] [ruta_del_archivo_local] [force]
+                                        
+            - [nombre_repositorio] : Se crea automáticamente al generar un repositorio nuevo
+            - [ruta_del_archivo_local] : Pasando una ruta absoluta del archivo se crea automáticamente una ruta relativa
+              que se guardará en el remoto
+            - [force] : Esta opción permite descargar el archivo sin comparar las fechas de modificación de los archivos y será de tipo boolean
+              En caso de que force sea TRUE:
+                 - El archivo se descargará y actualizará
+              En caso de que force sea FALSE:
+                 - Se revisará si existe en el repositorio y sólo se descargará si el archivo local está desactualizado
+                 - Si no existe en el local, se descargará directamente
                            """);
 
     }
