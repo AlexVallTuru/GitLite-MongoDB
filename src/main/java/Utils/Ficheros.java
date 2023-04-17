@@ -13,13 +13,15 @@ import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.NoSuchFileException;
 import java.security.MessageDigest;
-import java.util.Date;
+import java.sql.Date;
+import java.util.*;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Utils.retornarExtension;
 import java.nio.file.Files;
 import com.mongodb.client.MongoCursor;
 import java.nio.file.Path;
@@ -100,28 +102,34 @@ public class Ficheros {
     public static ArrayList<File> compareAllFiles(File file) {
         List<File> lista = new ArrayList<>();
         File[] files = file.listFiles();
+        List<String> extensiones = retornarExtension();
         for (File fitxers : files) {
             if (fitxers.isDirectory()) {
                 List<File> listaRecursiva = new ArrayList<>();
                 listaRecursiva = compareAllFiles(fitxers);
                 lista.addAll(listaRecursiva);
-            } else if (fitxers.getName().endsWith(".txt")) {
-                lista.add(fitxers);
+            } else {
+                for (String extension : extensiones) {
+                    if (fitxers.getName().endsWith(extension)) {
+                        lista.add(fitxers);
+                        break;
+                    }
+                }
             }
         }
         return (ArrayList<File>) lista;
     }
 
-    public static void compareTwoFiles(Document localDoc, Document dbDoc, Boolean containsDetails) {
+    public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean detailLocalORemoto) {
 
         try {
             if (compareTwoTimeStamp(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!\n\n");
             } else if (sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
-                System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
+                System.out.print("Son iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
             } else {
                 if (containsDetails) {
-                    compareLines(localDoc, dbDoc);
+                    compareLines(localDoc, dbDoc, detailLocalORemoto);
                 } else {
                     System.out.println("Son distintos\n\n");
                 }
@@ -171,11 +179,18 @@ public class Ficheros {
 
     }
 
-    public static void compareLines(Document doc1, Document doc2) throws IOException {
+    public static void compareLines(Document doc1, Document doc2, boolean detailLocalORemoto) throws IOException {
 
         int contadorDeLineas1 = 0;
-        ArrayList<String> lineas1 = docToArrayListLines(doc1);
-        ArrayList<String> lineas2 = docToArrayListLines(doc2);
+        ArrayList<String> lineas1 = null;
+        ArrayList<String> lineas2 = null;
+        if (detailLocalORemoto) {
+            lineas1 = docToArrayListLines(doc1);
+            lineas2 = docToArrayListLines(doc2);
+        } else {
+            lineas1 = docToArrayListLines(doc2);
+            lineas2 = docToArrayListLines(doc1);
+        }
         int contadorLineasIguales = 0;
         for (String linea1 : lineas1) {
 
@@ -259,6 +274,34 @@ public class Ficheros {
             lineas.add(line);
         }
         return lineas;
+    }
+
+    public static void archivosNoEcontrados(ArrayList<String> archivosNoEncontrados, ArrayList<String> archivosEncontrados, boolean detailLocalORemoto) {
+        List<String> extensiones = retornarExtension();
+        Set<String> setNombres = new HashSet<>(archivosNoEncontrados);
+        List<String> archivosAEliminar = new ArrayList<>();
+        for (String archivo : setNombres) {
+            boolean tieneExtension = false;
+            for (String extension : extensiones) {
+                if (archivo.endsWith(extension)) {
+                    tieneExtension = true;
+                    break;
+                }
+            }
+            if (!tieneExtension) {
+                archivosAEliminar.add(archivo);
+            }
+        }
+        archivosNoEncontrados.removeAll(archivosAEliminar);
+        archivosNoEncontrados.removeAll(archivosEncontrados);
+        String archivosNoEncontradosStr = String.join(", ", archivosNoEncontrados);
+        if (archivosNoEncontrados.isEmpty()) {
+            System.out.print("No hay más archivos a comparar.\n\n");
+        } else if (detailLocalORemoto) {
+            System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en remoto.\n\n");
+        } else {
+            System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en local.\n\n");
+        }
     }
 
     public static String getAbsolutePath(Path directory, File file) {

@@ -55,9 +55,9 @@ public class DocumentsLogica implements InterfaceLogica {
     }
 
     @Override
-    public void compareFiles(String file, boolean containsDetails) {
+    public void compareFiles(String file, boolean containsDetails, boolean detailLocalORemoto) {
         try {
-            dao.compareFiles(file,containsDetails);
+            dao.compareFiles(file,containsDetails,detailLocalORemoto);
         } catch (Exception e) {
             e.printStackTrace();
         }

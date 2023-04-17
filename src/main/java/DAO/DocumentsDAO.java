@@ -15,16 +15,21 @@ import Utils.Utils;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoException;
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
+import java.util.*;
 
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
 import com.mongodb.client.MongoDatabase;
 import org.bson.Document;
 
+import static Utils.Ficheros.*;
+import static Utils.Utils.*;
+
+import java.nio.file.NoSuchFileException;
 import static Utils.Utils.fileToDocument;
 import com.mongodb.client.model.Filters;
 
@@ -53,8 +58,6 @@ public class DocumentsDAO implements InterfaceDAO {
     MongoDatabase db = f.getDataBase();
     Path repoPath = f.getRepositoryPath();
     String repoName = f.getRepositoryName();
-
-    MongoCollection<Document> collection = MongoConnection.getCollection();
 
     /**
      * Crea un repositori a la BBDD remota amb una ruta indicada per l'usuari.
@@ -252,45 +255,120 @@ public class DocumentsDAO implements InterfaceDAO {
     }
 
     @Override
-    public void compareFiles(String inputPathfile, boolean containsDetails) throws Exception {
+    public void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
 
         if (inputPathfile.isEmpty()) {
+            compararMultiplesArchivos(inputPathfile, containsDetails, detailLocalORemoto);
+        } else {
+            compararUnicoArchivo(inputPathfile, containsDetails, detailLocalORemoto);
+        }
+    }
 
-            MongoCursor<Document> allFilesDb = collection.find().iterator();
-            ArrayList<Document> documentsDb = new ArrayList<>();
-            while (allFilesDb.hasNext()) {
-                documentsDb.add(allFilesDb.next());
+    public void compararMultiplesArchivos(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+        MongoDatabase repository = f.getDataBase();
+        MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
+        MongoCursor<Document> allFilesDb = col.find(
+                new Document("extensio", new Document("$in", retornarExtension()))
+        ).iterator();
+        MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
+        ArrayList<Document> documentsDb = new ArrayList<>();
+        while (cursor.hasNext()) {
+            documentsDb.add(cursor.next());
+        }
+
+        try {
+            if (f.getRepositoryPath() == null) {
+                throw new NullPointerException("Trabajando en solucionar los problemas de directorio");
             }
-            File directoryLocal = new File(f.getRepositoryPath().toUri());
-            //TODO FILTRAR DOCUMENTOS QUE SEAN TXT XML ..... (Actualmente solo se filtran *.txt)
-            List<File> fileList = compareAllFiles(directoryLocal);
 
+        } catch (NullPointerException e) {
+            System.err.println("Error: " + e.getMessage());
+            return;
+        }
+
+        File directoryLocal = new File(f.getRepositoryPath().toUri());
+        //Modificar funcion compareAllFiles
+        List<File> fileList = compareAllFiles(directoryLocal);
+        ArrayList<String> archivosNoEncontrados = new ArrayList<>();
+        ArrayList<String> archivosEncontrados = new ArrayList<>();
+
+        if (detailLocalORemoto) {
+            //DE LOCAL A REMOTO
             for (Document documentoDb : documentsDb) {
-                for (File Localfile : fileList) {
-                    if (documentoDb.getString("nom").equals(Localfile.getName())) {
-                        System.out.print(Localfile.getName() + " " + documentoDb.getString("nom") + "\n");
-                        compareTwoFiles(fileToDocument(Localfile), documentoDb, containsDetails);
+                for (File localFile : fileList) {
+                    if (formatPath(localFile.getPath()).equals(documentoDb.getString("path"))) {
+                        archivosEncontrados.add(localFile.getName());
+                        System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");
+                        try {
+                            compareTwoFiles(fileToDocument(localFile), documentoDb, containsDetails, detailLocalORemoto);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        archivosNoEncontrados.add(localFile.getName());
                     }
                 }
             }
-
         } else {
-            Path secondPath = Paths.get(inputPathfile);
-            Path resolvedPath = repoPath.resolve(secondPath);
+            //DE REMOTO A LOCAL
+            for (File localFile : fileList) {
+                for (Document documentoDb : documentsDb) {
+                    if (documentoDb.getString("path").equals(formatPath(localFile.getPath()))) {
+                        archivosEncontrados.add(documentoDb.getString("nom"));
+                        System.out.print("Comparación del archivo " + documentoDb.getString("nom") + " (remoto a local).\n");
+                        try {
+                            compareTwoFiles(fileToDocument(localFile), documentoDb, containsDetails, detailLocalORemoto);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } else {
+                        archivosNoEncontrados.add(documentoDb.getString("nom"));
+                    }
+                }
+            }
+        }
+        Ficheros.archivosNoEcontrados(archivosNoEncontrados, archivosEncontrados, detailLocalORemoto);
+    }
 
-            File localFile = new File(resolvedPath.toString());
+    public void compararUnicoArchivo(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
+        MongoDatabase repository = f.getDataBase();
+        MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
+        Path secondPath = Paths.get(inputPathfile);
 
-            if (!localFile.exists()) {
-                System.out.println("ERROR: El archivo local no existe.\n");
-                return;
+        try {
+            if (f.getRepositoryPath() == null) {
+                throw new NullPointerException("Trabajando en solucionar los problemas de directorio");
             }
 
-            Document documentLocal = fileToDocument(localFile);
-
-            Document query = new Document("path", resolvedPath.toString());
-            Document documentoDb = collection.find(query).first();
-
-            compareTwoFiles(documentLocal, documentoDb, containsDetails);
+        } catch (NullPointerException e) {
+            System.err.println("Error: " + e.getMessage());
+            return;
         }
+
+        Path resolvedPath = f.getRepositoryPath().resolve(secondPath);
+
+        File localFile = new File(resolvedPath.toString());
+
+        if (!localFile.exists()) {
+            System.out.println("ERROR: El archivo local no existe.\n");
+            return;
+        }
+
+        Document documentLocal;
+        try {
+            documentLocal = fileToDocument(localFile);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        Document query = new Document("path", getAbsolutePathDirect(resolvedPath).toString())
+                .append("extensio", new Document("$in", retornarExtension()));
+        Document documentoDb = col.find(query).first();
+        if (detailLocalORemoto) {
+            System.out.print("\nComparación del archivo " + localFile.getName() + " (local a remoto).\n");
+        } else {
+            System.out.print("\nComparación del archivo " + localFile.getName() + " (remoto a local).\n");
+        }
+        compareTwoFiles(documentLocal, documentoDb, containsDetails, detailLocalORemoto);
     }
 }

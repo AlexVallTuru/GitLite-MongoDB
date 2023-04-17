@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Scanner;
 import java.util.Date;
+import java.util.List;
 import org.bson.Document;
 
 /**
@@ -32,6 +33,10 @@ public class Utils {
 
         return path.toString().substring(2);
 
+    }
+
+    public static String getAbsolutePathDirect(Path path) {
+        return path.toAbsolutePath().toString().substring(2);
     }
 
     public static Document fileToDocument(File file) throws IOException {
@@ -180,6 +185,28 @@ public class Utils {
             }
 
         }
+    }
+
+    public static List<String> retornarExtension() {
+        List<String> extensions = Arrays.asList("java", "txt", "xml", "html");
+        return extensions;
+    }
+
+    public static String formatPath(String ruta) {
+        String fileSeparator = System.getProperty("file.separator");
+        if (ruta.matches("^[A-Za-z]:" + fileSeparator + ".*")) {
+            ruta = ruta.substring(3);
+        } else if (ruta.startsWith(fileSeparator) || ruta.startsWith("/")) {
+            ruta = ruta.substring(1);
+        }
+
+        // Eliminar el disco del camino y el primer separador de archivos
+        int index = ruta.indexOf(fileSeparator);
+        if (index > -1) {
+            ruta = ruta.substring(index);
+        }
+
+        return ruta;
     }
 
 }

@@ -20,7 +20,7 @@ public interface InterfaceLogica {
 
     File pullFile(String file,Boolean force);
 
-    void compareFiles(String file, boolean containsDetails);
+    void compareFiles(String file, boolean containsDetails,boolean detailLocalORemoto);
     
     void cloneRepository(String date);
     

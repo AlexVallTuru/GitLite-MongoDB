@@ -8,6 +8,13 @@ import Logica.DocumentsLogica;
 import Logica.MenuLogica;
 import Singleton.MongoConnection;
 import Utils.Utils;
+import com.mongodb.MongoClient;
+import com.mongodb.client.MongoDatabase;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Date;
 import java.io.File;
 import java.util.Scanner;
 
@@ -17,6 +24,14 @@ import java.util.Scanner;
  */
 public class Menus {
 
+    private static MongoConnection connection = MongoConnection.getInstance();
+    private static MongoDatabase repository = null;
+    private static File rem = null;
+    private static String idRemot = null;
+    public static MongoConnection f = MongoConnection.getInstance();
+    public static MongoDatabase db = f.getDataBase();
+    public static Path repoPath = f.getRepositoryPath();
+    public static String repoName = f.getRepositoryName();
     private static final DocumentsLogica logica = new DocumentsLogica();
 
     public static int menuPrincipal() {
@@ -140,20 +155,32 @@ public class Menus {
 
     public static void menuCompare() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indicar ruta: ");
+        System.out.println("Indicar ruta del archivo:\n- En caso de que se encuentra en el repositorio actual, introduce el nombre unicamente.\n "
+                + "- En caso de dejarlo vacio mostrara el contenido del repositorio: " + f.getRepositoryName() + ".");
         String ruta = in.nextLine();
         System.out.println("Quieres visualizar los detalles? (s/n)");
         String resultado = in.nextLine();
-        boolean containsDetails = false;
+        String detailsLocalORemot;
 
         if (resultado.equalsIgnoreCase("s")) {
-            logica.compareFiles(ruta, true);
+            System.out.println("Quieres comparar de local a remoto o viceversa? (l/r)");
+            detailsLocalORemot = in.nextLine();
         } else if (resultado.equalsIgnoreCase("n")) {
-            logica.compareFiles(ruta, false);
+            detailsLocalORemot = "n"; // Establecer una opción por defecto
         } else {
-            System.out.print("\nIntroduce una opcion valida\n");
+            System.out.println("Introduce una opción válida, por favor.");
+            return;
         }
 
+        if (detailsLocalORemot.equalsIgnoreCase("l")) {
+            logica.compareFiles(ruta, true, true);
+        } else if (detailsLocalORemot.equalsIgnoreCase("r")) {
+            logica.compareFiles(ruta, true, false);
+        } else if (detailsLocalORemot.equalsIgnoreCase("n")) {
+            logica.compareFiles(ruta, false, true);
+        } else {
+            System.out.println("Introduce una opción válida.");
+        }
     }
 
     /**
