@@ -21,6 +21,7 @@ import java.util.List;
 import org.bson.Document;
 import org.bson.conversions.Bson;
 import static Utils.Ficheros.sonArchivosIgualesPorMD5;
+import static Utils.Utils.retornarExtension;
 import java.nio.file.Files;
 import com.mongodb.client.MongoCursor;
 import java.nio.file.Path;
@@ -101,25 +102,31 @@ public class Ficheros {
     public static ArrayList<File> compareAllFiles(File file) {
         List<File> lista = new ArrayList<>();
         File[] files = file.listFiles();
+        List<String> extensiones = retornarExtension();
         for (File fitxers : files) {
             if (fitxers.isDirectory()) {
                 List<File> listaRecursiva = new ArrayList<>();
                 listaRecursiva = compareAllFiles(fitxers);
                 lista.addAll(listaRecursiva);
-            } else if (fitxers.getName().endsWith(".txt")) {
-                lista.add(fitxers);
+            } else {
+                for (String extension : extensiones) {
+                    if (fitxers.getName().endsWith(extension)) {
+                        lista.add(fitxers);
+                        break;
+                    }
+                }
             }
         }
         return (ArrayList<File>) lista;
     }
 
-    public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean  detailLocalORemoto) {
+    public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean detailLocalORemoto) {
 
         try {
             if (compareTwoTimeStamp(localDoc, dbDoc)) {
                 System.out.print("\nSon iguales!\n\n");
             } else if (sonArchivosIgualesPorMD5(localDoc, dbDoc)) {
-                System.out.print("\nSon iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
+                System.out.print("Son iguales!! \t Pero la ultimas fechas de modificación son diferente\n\n");
             } else {
                 if (containsDetails) {
                     compareLines(localDoc, dbDoc, detailLocalORemoto);
@@ -269,22 +276,34 @@ public class Ficheros {
         return lineas;
     }
 
-    public static void archivosNoEcontrados(ArrayList<String> archivosNoEncontrados, ArrayList<String> archivosEncontrados, boolean detailLocalORemoto){
+    public static void archivosNoEcontrados(ArrayList<String> archivosNoEncontrados, ArrayList<String> archivosEncontrados, boolean detailLocalORemoto) {
+        List<String> extensiones = retornarExtension();
         Set<String> setNombres = new HashSet<>(archivosNoEncontrados);
-        archivosNoEncontrados.clear();
-        archivosNoEncontrados.addAll(setNombres);
+        List<String> archivosAEliminar = new ArrayList<>();
+        for (String archivo : setNombres) {
+            boolean tieneExtension = false;
+            for (String extension : extensiones) {
+                if (archivo.endsWith(extension)) {
+                    tieneExtension = true;
+                    break;
+                }
+            }
+            if (!tieneExtension) {
+                archivosAEliminar.add(archivo);
+            }
+        }
+        archivosNoEncontrados.removeAll(archivosAEliminar);
         archivosNoEncontrados.removeAll(archivosEncontrados);
         String archivosNoEncontradosStr = String.join(", ", archivosNoEncontrados);
-        if(archivosNoEncontrados.isEmpty()){
-            System.out.print("No hay mas archivos a comparar.\n\n");
-        }
-        else if (detailLocalORemoto) {
+        if (archivosNoEncontrados.isEmpty()) {
+            System.out.print("No hay más archivos a comparar.\n\n");
+        } else if (detailLocalORemoto) {
             System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en remoto.\n\n");
-        }else{
+        } else {
             System.out.print("Los archivos:\n" + archivosNoEncontradosStr + "\nNo existen en local.\n\n");
         }
     }
-    
+
     public static String getAbsolutePath(Path directory, File file) {
         String path = file.getAbsolutePath();
         return path.replace(directory.toString(), "");

@@ -35,6 +35,10 @@ public class Utils {
 
     }
 
+    public static String getAbsolutePathDirect(Path path) {
+        return path.toAbsolutePath().toString().substring(2);
+    }
+
     public static Document fileToDocument(File file) throws IOException {
 
         try {
@@ -74,23 +78,23 @@ public class Utils {
         return opcio == 1;
 
     }
-    
+
     /**
      * Canvia una ruta canviant els separadors de fitxers per _. Per exemple:
      * "C:\Users\mole6\OneDrive\Documentos\NetBeansProjects" es converteix en
      * "Users_mole6_OneDrive_Documentos_NetBeansProjects".
-     * 
+     *
      * @param ruta
-     * @return 
+     * @return
      */
     public static String pathToRepoName(String ruta) {
         // Comproba si la ruta conté un identificador d'unitat. Si existeix, l'elimina
         if (ruta.matches("^[A-Za-z]:[/\\\\].*")) {
             ruta = ruta.substring(3);
 
-        // Si no conté cap identificador d'unitat, només comproba si comença
-        // amb un separador i l'elimina
-        } else if (ruta.startsWith(System.getProperty("file.separator")) 
+            // Si no conté cap identificador d'unitat, només comproba si comença
+            // amb un separador i l'elimina
+        } else if (ruta.startsWith(System.getProperty("file.separator"))
                 || ruta.startsWith("/")) {
             ruta = ruta.substring(1);
         }
@@ -177,10 +181,11 @@ public class Utils {
         }
     }
 
-    public static List<String> retornarExtension(){
+    public static List<String> retornarExtension() {
         List<String> extensions = Arrays.asList("java", "txt", "xml", "html");
         return extensions;
     }
+
     public static String formatPath(String ruta) {
         String fileSeparator = System.getProperty("file.separator");
         if (ruta.matches("^[A-Za-z]:" + fileSeparator + ".*")) {

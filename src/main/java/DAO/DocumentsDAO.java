@@ -244,7 +244,7 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
 
                 // Escribim el document en un nou fitxer
-                try ( BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
                     System.out.println("Clonat fitxer " + filePath);
                 } catch (IOException e) {
@@ -279,6 +279,17 @@ public class DocumentsDAO implements InterfaceDAO {
         while (cursor.hasNext()) {
             documentsDb.add(cursor.next());
         }
+
+        try {
+            if (f.getRepositoryPath() == null) {
+                throw new NullPointerException("Trabajando en solucionar los problemas de directorio");
+            }
+
+        } catch (NullPointerException e) {
+            System.err.println("Error: " + e.getMessage());
+            return;
+        }
+
         File directoryLocal = new File(f.getRepositoryPath().toUri());
         //Modificar funcion compareAllFiles
         List<File> fileList = compareAllFiles(directoryLocal);
@@ -327,6 +338,17 @@ public class DocumentsDAO implements InterfaceDAO {
         MongoDatabase repository = f.getDataBase();
         MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
         Path secondPath = Paths.get(inputPathfile);
+
+        try {
+            if (f.getRepositoryPath() == null) {
+                throw new NullPointerException("Trabajando en solucionar los problemas de directorio");
+            }
+
+        } catch (NullPointerException e) {
+            System.err.println("Error: " + e.getMessage());
+            return;
+        }
+
         Path resolvedPath = f.getRepositoryPath().resolve(secondPath);
 
         File localFile = new File(resolvedPath.toString());
@@ -343,7 +365,7 @@ public class DocumentsDAO implements InterfaceDAO {
             throw new RuntimeException(e);
         }
 
-        Document query = new Document("path", resolvedPath.toString())
+        Document query = new Document("path", getAbsolutePathDirect(resolvedPath).toString())
                 .append("extensio", new Document("$in", retornarExtension()));
         Document documentoDb = col.find(query).first();
         if (detailLocalORemoto) {
