@@ -4,10 +4,8 @@
  */
 package Model;
 
-import Utils.Ficheros;
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
+import java.util.Date;
 import org.bson.Document;
 
 /**
@@ -17,21 +15,25 @@ import org.bson.Document;
 public class Fitxer {
 
     private String filePath;
-    private String nomFitxer;
-    private String extensio;
-    private Long tamany;
-    private String contingut;
+    private String nombreFichero;
+    private String extension;
+    private Long fileSize;
+    private String contenido;
+    private String parentPath;
+    private Date fechaModificacion;
 
     public Fitxer() {
 
     }
 
-    public Fitxer(String filePath, String nomFitxer, String extensio, Long tamany, String contingut) {
+    public Fitxer(String filePath, String nombreFichero, String extension, Long fileSize, String contenido,String parentPath,Date fechaModificacion) {
         this.filePath = filePath;
-        this.nomFitxer = nomFitxer;
-        this.extensio = extensio;
-        this.tamany = tamany;
-        this.contingut = contingut;
+        this.nombreFichero = nombreFichero;
+        this.extension = extension;
+        this.fileSize = fileSize;
+        this.contenido = contenido;
+        this.parentPath=parentPath;
+        this.fechaModificacion = fechaModificacion;
     }
 
     public String getFilePath() {
@@ -43,53 +45,69 @@ public class Fitxer {
     }
 
     public String getNomFitxer() {
-        return nomFitxer;
+        return nombreFichero;
     }
 
-    public void setNomFitxer(String nomFitxer) {
-        this.nomFitxer = nomFitxer;
+    public void setNombreFichero(String nomFitxer) {
+        this.nombreFichero = nomFitxer;
     }
 
     public String getExtensio() {
-        return extensio;
+        return extension;
     }
 
-    public void setExtensio(String extensio) {
-        this.extensio = extensio;
+    public void setExtension(String extensio) {
+        this.extension = extensio;
     }
 
     public Long getTamany() {
-        return tamany;
+        return fileSize;
     }
 
-    public void setTamany(Long tamany) {
-        this.tamany = tamany;
+    public void setFileSize(Long tamany) {
+        this.fileSize = tamany;
     }
 
     public String getContingut() {
-        return contingut;
+        return contenido;
     }
 
-    public void setContingut(String contingut) {
-        this.contingut = contingut;
+    public void setContenido(String contingut) {
+        this.contenido = contingut;
+    }
+    
+    public String getParentPath() {
+        return parentPath;
     }
 
-    public Fitxer documentToObject(Document doc) {
+    public void setParentPath(String contingut) {
+        this.parentPath = contingut;
+    }
+
+    public Date getDataModificacio() {
+        return fechaModificacion;
+    }
+
+    public void setFechaModificacion(Date dataModificacio) {
+        this.fechaModificacion = dataModificacio;
+    }
+
+    public Fitxer documentToObject(Document doc,String path) {
 
         Fitxer fitxer = new Fitxer();
-
-        fitxer.setNomFitxer(nomFitxer);
-        fitxer.setTamany(tamany);
-        fitxer.setFilePath(filePath);
-        fitxer.setExtensio(extensio);
-        fitxer.setContingut(contingut);
-
+        fitxer.setNombreFichero(doc.getString("nom"));
+        fitxer.setFileSize(doc.getLong("tamany"));
+        fitxer.setFilePath(path);
+        fitxer.setExtension(doc.getString("extensio"));
+        fitxer.setContenido(doc.getString("contingut"));
+        fitxer.setParentPath(new File(path).getParent());
+        fitxer.setFechaModificacion(doc.getDate("modificacio"));
         return fitxer;
     }
 
     @Override
     public String toString() {
-        return "Fitxer{" + "filePath=" + filePath + ", nomFitxer=" + nomFitxer + ", extensio=" + extensio + ", tamany=" + tamany + ", contingut=" + contingut + '}';
+        return String.format("Nombre: %s\nTamaño: %s\nPath: %s\nExtension: %s\nParent: %s\nContenido: \n%s",nombreFichero,fileSize,filePath,extension,parentPath,contenido);
     }
 
 }

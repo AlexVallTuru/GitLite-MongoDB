@@ -14,14 +14,14 @@ public interface InterfaceLogica {
 
     void createRepository(String ruta);
 
-    void dropRepository(String repository);
+    void dropRepository();
 
-    void pushFile(String file,String force);
+    void pushFile(String file,Boolean force);
 
-    File pullFile(String file);
+    File pullFile(String file,Boolean force);
 
-    void compareFiles(String file);
+    void compareFiles(String file, boolean containsDetails,boolean detailLocalORemoto);
     
-    void cloneRepository(String file);
+    void cloneRepository(String date);
     
 }

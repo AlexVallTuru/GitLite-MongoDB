@@ -4,8 +4,6 @@
  */
 package Interfaces;
 
-import java.io.File;
-
 /**
  *
  * @author carlo
@@ -13,10 +11,10 @@ import java.io.File;
 public interface InterfaceDAO {
     
     void createRepository(String ruta);
-    void dropRepository(String repository);
-    void pushFile(String file,String force);
-    void pullFile(String file);
-    void compareFiles(String file);
-    void cloneRepository(String file);
+    void dropRepository();
+    void pushFile(String file,Boolean force);
+    void pullFile(String file,Boolean force);
+    void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto);
+    void cloneRepository(String date);
     
 }
