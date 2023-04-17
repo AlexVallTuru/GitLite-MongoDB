@@ -99,6 +99,10 @@ public class Ficheros {
         }
     }
 
+    /**
+     * Funcion recursiva que recibe un file que contiene todo el contenido de un directorio,
+     * y obtiene todos los files que contiene, incluyendo el del interior de las carpetas.
+     */
     public static ArrayList<File> compareAllFiles(File file) {
         List<File> lista = new ArrayList<>();
         File[] files = file.listFiles();
@@ -120,6 +124,15 @@ public class Ficheros {
         return (ArrayList<File>) lista;
     }
 
+    /**
+     * Funcion para realizar el comparador de dos archivos donde llamara distintas 
+     * funciones dependiendo de los resultados de estas
+     * @param localDoc documento local a comparar
+     * @param dbDoc documento de la base de datos a comparar
+     * @param containsDetails boolean que indica si se mostraran detalles
+     * @param detailLocalORemoto boolean que indica si se realiza de local a
+     * remoto o viceversa
+     */
     public static void compareTwoFiles(Document localDoc, Document dbDoc, boolean containsDetails, boolean detailLocalORemoto) {
 
         try {
@@ -144,12 +157,24 @@ public class Ficheros {
         }
     }
 
+    /**
+     * Comparador del TimeStamp de dos documentos
+     */
     public static boolean compareTwoTimeStamp(Document doc1, Document doc2) {
         long localTimeStamp = doc1.getDate("modificacio").getTime();
         long dbTimeStamp = doc2.getDate("modificacio").getTime();
         return dbTimeStamp == localTimeStamp;
     }
 
+    /**
+     * Funcion para obtener el timestamp de dos docuemntos y informar al usuario 
+     * de los posibles resultados
+     * @param path path del documento local a comparar
+     * @param file file 
+     * @param collection 
+     * @return
+     * @throws IOException 
+     */
     public static boolean compareModifiedDate(Path path, File file, MongoCollection collection) throws IOException {
         Date d = new Date(file.lastModified());
         String pathRepositorio = Ficheros.getAbsolutePath(path, file);
@@ -179,6 +204,11 @@ public class Ficheros {
 
     }
 
+    /**
+     * Funcion que se encarga de comparar dos documentos linea a linea, informando al usuario
+     * de si estas tiene una linea modificada, eliminar o las que son iguales, contiene informacion
+     * adicional como el numero de linae o las lineas que son distintas.
+     */
     public static void compareLines(Document doc1, Document doc2, boolean detailLocalORemoto) throws IOException {
 
         int contadorDeLineas1 = 0;
@@ -229,7 +259,10 @@ public class Ficheros {
         }
         return count;
     }
-
+    /**
+     * Funcion encargada de comparar dos documentos, fracionada en dos partes,
+     * esta unicamente prepara los documentos para enviar un array de bytes con el contenido de las lineas
+     */
     public static boolean sonArchivosIgualesPorMD5(Document doc1, Document doc2) throws Exception {
         ArrayList<String> localLines = docToArrayListLines(doc1);
         ArrayList<String> dbLines = docToArrayListLines(doc2);
@@ -254,6 +287,9 @@ public class Ficheros {
         return md5Contenido1.equals(md5Contenido2);
     }
 
+    /**
+     * Funcion encargada de realizar la encriptacion MD5 de un array de bytes
+     */
     public static String obtenerMD5ComoString(byte[] contenido) throws Exception {
         MessageDigest complete = MessageDigest.getInstance("MD5");
         complete.update(contenido);
@@ -264,7 +300,10 @@ public class Ficheros {
         }
         return resultado.toString();
     }
-
+    /**
+     * Funcion encargada de pasar el contenido de un Documento a un ArrayList con el contenido 
+     * de la lineas.
+     */
     public static ArrayList<String> docToArrayListLines(Document doc) throws IOException {
         ArrayList<String> lineas = new ArrayList<>();
         String content1 = doc.getString("contingut");
@@ -275,7 +314,11 @@ public class Ficheros {
         }
         return lineas;
     }
-
+    /**
+     * Funcion encargada de imprimir una lista de archivos no encontrados
+     * al realizar la comparacion de archivos, añadida para no dejar vacio
+     * el resultado.
+     */
     public static void archivosNoEcontrados(ArrayList<String> archivosNoEncontrados, ArrayList<String> archivosEncontrados, boolean detailLocalORemoto) {
         List<String> extensiones = retornarExtension();
         Set<String> setNombres = new HashSet<>(archivosNoEncontrados);

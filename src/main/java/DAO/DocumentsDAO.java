@@ -254,6 +254,13 @@ public class DocumentsDAO implements InterfaceDAO {
         }
     }
 
+    /**
+     *
+     * @param inputPathfile documento o ruta con documento insertado en el sout
+     * @param containsDetails boolean que indica si se mostraran detalles
+     * @param detailLocalORemoto boolean que indica si se realiza de local a
+     * remoto o viceversa
+     */
     @Override
     public void compareFiles(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
 
@@ -264,6 +271,13 @@ public class DocumentsDAO implements InterfaceDAO {
         }
     }
 
+    /**
+     * Funcion para realizar el comparador de multiples archivos
+     * @param inputPathfile documento o ruta con documento insertado en el sout
+     * @param containsDetails boolean que indica si se mostraran detalles
+     * @param detailLocalORemoto boolean que indica si se realiza de local a
+     * remoto o viceversa
+     */
     public void compararMultiplesArchivos(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
         String repoName = f.getRepositoryName();
         Path repoPath = f.getRepositoryPath();
@@ -335,6 +349,13 @@ public class DocumentsDAO implements InterfaceDAO {
         Ficheros.archivosNoEcontrados(archivosNoEncontrados, archivosEncontrados, detailLocalORemoto);
     }
 
+    /**
+     * Funcion para realizar el comparador de archivos de un unico archivo
+     * @param inputPathfile documento o ruta con documento insertado en el sout
+     * @param containsDetails boolean que indica si se mostraran detalles
+     * @param detailLocalORemoto boolean que indica si se realiza de local a
+     * remoto o viceversa
+     */
     public void compararUnicoArchivo(String inputPathfile, boolean containsDetails, boolean detailLocalORemoto) {
         String nombreArchivo = inputPathfile;
         nombreArchivo = configurarPathDoc(nombreArchivo);
