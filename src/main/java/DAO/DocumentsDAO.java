@@ -300,7 +300,6 @@ public class DocumentsDAO implements InterfaceDAO {
         }
 
         File directoryLocal = new File(f.getRepositoryPath().toUri());
-        //Modificar funcion compareAllFiles
         List<File> fileList = compareAllFiles(directoryLocal);
         ArrayList<String> archivosNoEncontrados = new ArrayList<>();
         ArrayList<String> archivosEncontrados = new ArrayList<>();
