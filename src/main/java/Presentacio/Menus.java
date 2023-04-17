@@ -42,6 +42,9 @@ public class Menus {
         return 0;
     }
 
+    /**
+     * Funcio que recull una ruta local per crear un nou repositori remot.
+     */
     public static void menuCreate() {
         try {
             Scanner in = new Scanner(System.in);
@@ -55,8 +58,8 @@ public class Menus {
                 if (new File(ruta).exists() && new File(ruta).isDirectory()) {
                     pathExists = true;
                 } else {
-                    System.out.println("La ruta no existeix o apunta a un fitxer, "
-                            + "introdueix-la de nou");
+                    System.out.println("La ruta no existe o apunta a un "
+                            + "fichero, introducela de nuevo.");
                 }
             }
 
@@ -88,17 +91,27 @@ public class Menus {
         return 0;
     }
 
+    /**
+     * Funció que confirma si l'usuari vol eliminar el repositori actual.
+     */
     public static void menuDrop() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Estás segur de que vols eliminar el repositori "
-                + "actual? [Si = 1, No = 2]");
+        System.out.println("Estás seguro de que quieres eliminar el repositorio "
+                + "actual? [Sí = 1, No = 2]");
         Boolean check = Utils.verificaOpcio(in.nextInt());
 
-        // Si l'usuari indica que no s'aborta l'operació
+        // Si l'usuari indica que no s'aborta l'operació, si no s'esborra el
+        // repositori i s'en torna a l'inici del programa
         if (check) {
             logica.dropRepository();
+
+            int opc = 0;
+            while (opc != 7) {
+                opc = Menus.menuInicio();
+                MenuLogica.getInitialOption(opc);
+            }
         } else {
-            System.out.println("Operació cancel·lada");
+            System.out.println("Operación cancelada.");
         }
     }
 
@@ -143,15 +156,19 @@ public class Menus {
 
     }
 
+    /**
+     * Menu que recoge una fecha (opciona) i la envía al metodo de clonación de
+     * repositorios.
+     */
     public static void menuClone() {
         Scanner in = new Scanner(System.in);
-        System.out.println("Indica una data en dd-MM-yyyy (opcional): ");
+        System.out.println("Indica una fecha en dd-MM-yyyy (opcional): ");
         String date = in.nextLine();
         // Si l'usuari introdueix una data, comproba que tingui un format valid
         if (!date.isBlank()) {
             while (!Utils.verificaData(date) && !date.isBlank()) {
-                System.out.println("Format de la data incorrecte, introdueix-ho"
-                        + " de nou o no introdueixis res per continuar:");
+                System.out.println("Formato de la fecha incorrecto, introducela"
+                        + " de nuevo o no introduzcas nada para continuar:");
                 date = in.nextLine();
             }
         }
@@ -174,20 +191,20 @@ public class Menus {
 
     public static void menuCreateAyuda() {
         System.out.println("""
-                           La funció de CREATE ens permet crear repositoris remotament a la base de dades a partir d'un repositori local. 
-                           És necessari que aquest repositori existeixi localment, i no és necessari que hi tingui cap contingut, 
-                           ja que es pujarà més endavant amb la funció de PULL.
+                           La función CREATE nos permite crear repositorios remotamente en la base de datos a partir de un repositorio local.
+                           Es necesario que este repositorio exista localmente, y no es necesario que tenga contenido, ya que
+                           este se podrá subir con la función PULL.
                            
-                           Instruccions:
-                           Introdueix la ruta al repositori, el programa crearà un repositori a partir d'aquesta ruta i 
-                           proporcionarà un nom a aquest a partir de la ruta.
+                           Instrucciones:
+                           Introduce la ruta al repositorio, el programa creará un repositorio a partir de esta ruta i proporcionará
+                           un nombre a este a partir de la ruta.
                            """);
     }
 
     public static void menuDropAyuda() {
         System.out.println("""
-                           La funció DROP elimina el repositori seleccionat a l'inici del programa de la base de dades, 
-                           després d'obtenir la confirmació de l'usuari. No l'elimina localment.
+                           La función DROP elimina el repositorio seleccionado en el inicio del programa de la base de datos,
+                           después de obtener la confirmación del usuario. No eliminará los archivos locales.
                            """);
 
     }
@@ -230,20 +247,19 @@ public class Menus {
     }
 
     public static void menuCompareAyuda() {
-        System.out.println("""
-                 WORK IN PROGRESS          """);
+        System.out.println("Muestra este menú de ayuda.");
 
     }
 
     public static void menuCloneAyuda() {
         System.out.println("""
-                           La funció CLONE clonarà el repositori seleccionat a l'inici del programa al sistema local, 
-                           si és que aquest encara no existeix localment. També permet clonar només els arxius creats abans 
-                           d'una data indicada per l'usuari.
+                           La fucnión CLONE clonará el repositorio seleccionado al inicio del programa en el sistema local,
+                           si es que este no existe localmente. También permite clonar solo los archivos creados antes
+                           de una fecha indicada por el usuario.
                            
-                           Instruccions:
-                           El programa demana a l'usuari una data en format dd-MM-yyyy, si no s'introdueix cap data, 
-                           el programa clonarà tots els arxius al repositori remot.
+                           Instrucciones:
+                           El programa pedirá al usuario una fecha en formato dd-MM-yyyy. Si no se introduce ninguna fecha,
+                           el programa clonará todos los archivos del repositorio remoto al sistema.
                            """);
 
     }

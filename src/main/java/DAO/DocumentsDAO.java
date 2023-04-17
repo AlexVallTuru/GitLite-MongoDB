@@ -64,7 +64,7 @@ public class DocumentsDAO implements InterfaceDAO {
      */
     @Override
     public void createRepository(String ruta) {
-        System.out.println("Creant repositori...");
+        System.out.println("Creando repositorio...");
         Path userPath = Paths.get(ruta);
         // Obtenim el nom del repositori a partir de la ruta
         String nomRepo = Utils.pathToRepoName(ruta);
@@ -82,12 +82,12 @@ public class DocumentsDAO implements InterfaceDAO {
             if (collectionExists) {
                 // Si ja existeix, guardem el nom i ruta del repositori i continua
                 // al següent menú.
-                System.out.println("Aquest repositori ja existeix. Accedint...");
+                System.out.println("Este repositorio ya existe. Accediendo...");
 
             } else {
                 //Crea el nou repositori amb el nom de la ruta processada
                 db.getCollection(nomRepo);
-                System.out.println("Repositori creat correctament.");
+                System.out.println("Repositorio creado correctamente.");
 
                 //Inserta un document amb la ruta del repositori
                 Document del = new Document();
@@ -111,10 +111,10 @@ public class DocumentsDAO implements InterfaceDAO {
             MongoCollection<Document> repositoryCollection = db
                     .getCollection(f.getRepositoryName());
             repositoryCollection.drop();
-            System.out.println("Repositori eliminat correctament.");
+            System.out.println("Repositorio eliminado correctamente.");
 
         } catch (MongoException ex) {
-            System.out.println("Excepció: " + ex.getMessage());
+            System.out.println("Excepción: " + ex.getMessage());
         }
     }
 
@@ -201,14 +201,15 @@ public class DocumentsDAO implements InterfaceDAO {
      */
     @Override
     public void cloneRepository(String date) {
-        //Comproba si el directori existeix localment per crear-lo
+        // Comprueba si el directorio existe localmente para crearlo
         if (Files.notExists(f.getRepositoryPath())) {
             try {
                 Files.createDirectories(f.getRepositoryPath());
             } catch (IOException e) {
                 System.out.println("Error: " + e.getMessage());
             }
-            System.out.println("Clonant repositori a " + f.getRepositoryPath());
+            System.out.println("Clonando el repositorio en " 
+                    + f.getRepositoryPath());
 
             // Obtenim un cursor amb tots els documents de la col·leccio
             MongoCursor<Document> cursor = db.getCollection(f.getRepositoryName()).find().iterator();
@@ -216,11 +217,6 @@ public class DocumentsDAO implements InterfaceDAO {
             while (cursor.hasNext()) {
                 // Iterem la col·leccio i afegim els documents a la llista
                 Document documento = cursor.next();
-
-                // Saltem el primer document amb clau "ruta"
-                if (documento.containsKey("ruta")) {
-                    continue;
-                }
 
                 // Comprovar si el fitxer es anterior a la data indicada per
                 // l'usuari, si aquest n'ha indicat una
@@ -243,15 +239,15 @@ public class DocumentsDAO implements InterfaceDAO {
                 // Escribim el document en un nou fitxer
                 try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
-                    System.out.println("Clonat fitxer " + filePath);
+                    System.out.println("Archivo clonado: " + filePath);
                 } catch (IOException e) {
                     System.out.println("Error: " + e.getMessage());
                 }
             }
 
         } else {
-            System.out.println("El repositori a clonar ja existeix localment,"
-                    + " eliminal i intenta-ho de nou.");
+            System.out.println("El repositorio que intentas clonar ya existe "
+                    + "localmente. Eliminalo e intentalo de nuevo.");
         }
     }
 
