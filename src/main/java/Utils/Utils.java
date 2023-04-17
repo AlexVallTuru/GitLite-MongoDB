@@ -10,6 +10,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Timestamp;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -203,4 +204,34 @@ public class Utils {
         return ruta;
     }
 
+    public static String configurarPathDoc(String nombreArchivo) {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) {
+            if (!nombreArchivo.startsWith("\\")) {
+                nombreArchivo = "\\" + nombreArchivo;
+                return nombreArchivo;
+            }
+
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            if (!nombreArchivo.startsWith("/")) {
+                nombreArchivo = "/" + nombreArchivo;
+                return nombreArchivo;
+            }
+        }
+        return nombreArchivo;
+    }
+
+    public static Path updateRepoPath(String repoName) {
+        String os = System.getProperty("os.name").toLowerCase();
+
+        if (os.contains("win")) {
+            repoName = repoName.replace("_", "\\");
+        } else if (os.contains("nix") || os.contains("nux") || os.contains("aix")) {
+            repoName = repoName.replace("_", "/");
+        }
+        repoName = configurarPathDoc(repoName);
+        
+        return Paths.get(repoName);
+    }
 }
