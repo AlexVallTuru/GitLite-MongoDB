@@ -34,14 +34,22 @@ public class Ficheros {
 
     DocumentsLogica logica = new DocumentsLogica();
 
+    /**
+     * Obtener contenido del fichero para añadirlo al repositorio
+     *
+     * @param file
+     * @return
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     public static String llegir(File file) throws FileNotFoundException, IOException {
         BufferedReader reader = new BufferedReader(new FileReader(file));
         StringBuilder stringBuilder = new StringBuilder();
         String line = null;
-        String ls = System.getProperty("line.separator");
+        String lineSeparator = System.getProperty("line.separator");
         while ((line = reader.readLine()) != null) {
             stringBuilder.append(line);
-            stringBuilder.append(ls);
+            stringBuilder.append(lineSeparator);
 
         }
         reader.close();
@@ -56,6 +64,12 @@ public class Ficheros {
         return content;
     }
 
+    /**
+     * Obtener extension del fichero para realizar la filtracion
+     *
+     * @param file
+     * @return
+     */
     public static String getExtensio(File file) {
         String name = file.getName();
         int limit = name.lastIndexOf(".");
@@ -64,6 +78,13 @@ public class Ficheros {
 
     }
 
+    /**
+     * Funcion para realizar el push al repositorio de manera recursiva
+     *
+     * @param file
+     * @param force
+     * @throws IOException
+     */
     public static void pushAllFiles(File file, boolean force) throws IOException {
         MongoConnection c = MongoConnection.getInstance();
         MongoCollection<Document> col = c.getDataBase().getCollection(c.getRepositoryName());
@@ -167,25 +188,25 @@ public class Ficheros {
     }
 
     /**
-     * Funcion para obtener el timestamp de dos docuemntos y informar al usuario 
-     * de los posibles resultados
-     * @param path path del documento local a comparar
-     * @param file file 
-     * @param collection 
+     * Comprobar la fecha de modificacion antes e realizar el push
+     *
+     * @param path
+     * @param file
+     * @param collection
      * @return
-     * @throws IOException 
+     * @throws IOException
      */
     public static boolean compareModifiedDate(Path path, File file, MongoCollection collection) throws IOException {
         Date d = new Date(file.lastModified());
         String pathRepositorio = Ficheros.getAbsolutePath(path, file);
-        Timestamp ts = Utils.convertToTimeStamp(d);
+        Timestamp fechaModificacionLocal = Utils.convertToTimeStamp(d);
         Bson filter = Filters.and(Filters.eq("path", pathRepositorio), Filters.exists("path", true));
         Document c = (Document) collection.find(filter).first();
         if (c == null) {
-            System.out.println("No s'ha trovat el fitxer al repositori. Es pujara automaticament");
+            System.out.println("No se a encontrado el fichero en el repositorio. Se subira automaticamente");
             collection.insertOne(Utils.fileToDocument(file));
         } else {
-            Timestamp ts2 = Utils.convertToTimeStamp(c.getDate("modificacio"));
+            Timestamp fechaModificacionRemoto = Utils.convertToTimeStamp(c.getDate("modificacio"));
 
             if (d.after(Utils.convertToTimeStamp(c.getDate("modificacio")))) {
                 System.out.println(file.getName() + " se ha actualizado");
@@ -195,7 +216,7 @@ public class Ficheros {
                 System.out.println("El fichero remoto es posterior, actualiza el local");
                 return false;
             } else {
-                System.out.println("los ficheros son iguales");
+                System.out.println("Los ficheros son iguales");
             }
 
         }
@@ -347,12 +368,26 @@ public class Ficheros {
         }
     }
 
+    /**
+     * Obtener la ruta absoluta del path que se le pasa
+     *
+     * @param directory
+     * @param file
+     * @return
+     */
     public static String getAbsolutePath(Path directory, File file) {
         String path = file.getAbsolutePath();
         return path.replace(directory.toString(), "");
 
     }
 
+    /**
+     * Añadir contenido al fichero descargado
+     *
+     * @param fname
+     * @param content
+     * @throws IOException
+     */
     public static void addContent(File fname, String content) throws IOException {
         BufferedWriter bw = new BufferedWriter(new FileWriter(fname));
         bw.write(content);
@@ -381,6 +416,13 @@ public class Ficheros {
         return check;
     }
 
+    /**
+     * Comprobar las fechas antes de realizar el pull
+     *
+     * @param fitxer
+     * @param rutaRemota
+     * @return
+     */
     public static boolean checkDateForPull(Fitxer fitxer, String rutaRemota) {
         //Obtener conexion
         MongoConnection mc = MongoConnection.getInstance();
@@ -425,26 +467,31 @@ public class Ficheros {
         return false;
     }
 
+    /**
+     * Funcion para realizar el pull de manera recursiva
+     *
+     * @param force
+     * @throws IOException
+     */
     public static void recursivePull(Boolean force) throws IOException {
         MongoConnection con = MongoConnection.getInstance();
         String repositorio = con.getRepositoryPath().toString();
         MongoCollection col = con.getDataBase().getCollection(con.getRepositoryName());
-        System.out.println(con.getRepositoryName());
         MongoCursor<Document> doc = col.find().iterator();
 
         while (doc.hasNext()) {
             Document g = doc.next();
-            Fitxer v = new Fitxer();
+            Fitxer archivoRemoto = new Fitxer();
             String path = String.join("", repositorio, g.getString("path"));
             String parent = new File(path).getParent();
-            v = v.documentToObject(g, path);
+            archivoRemoto = archivoRemoto.documentToObject(g, path);
             if (force) {
-                Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
-                Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+                Utils.crearRuta(new File(parent), new File(archivoRemoto.getFilePath()), force);
+                Ficheros.addContent(new File(archivoRemoto.getFilePath()), archivoRemoto.getContingut());
             } else {
-                if (Ficheros.checkDateForPull(v, g.getString("path"))) {
-                    Utils.crearRuta(new File(parent), new File(v.getFilePath()), force);
-                    Ficheros.addContent(new File(v.getFilePath()), v.getContingut());
+                if (Ficheros.checkDateForPull(archivoRemoto, g.getString("path"))) {
+                    Utils.crearRuta(new File(parent), new File(archivoRemoto.getFilePath()), force);
+                    Ficheros.addContent(new File(archivoRemoto.getFilePath()), archivoRemoto.getContingut());
                 }
             }
 
