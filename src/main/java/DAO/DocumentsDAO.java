@@ -296,7 +296,7 @@ public class DocumentsDAO implements InterfaceDAO {
             for (Document documentoDb : documentsDb) {
                 for (File localFile : fileList) {
                     String localPath = formatPath(localFile.getPath());
-                    String ServerPath = formatPath(repoPath.toString() + documentoDb.getString("path"));
+                    String ServerPath = repoPath.toString() + documentoDb.getString("path");
                     if (localPath.equals(ServerPath)) {
                         archivosEncontrados.add(localFile.getName());
                         System.out.print("Comparación del archivo " + localFile.getName() + " (local a remoto).\n");

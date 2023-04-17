@@ -33,7 +33,6 @@ public class MenuDAO {
         mc.setRepositoryName(f.get(opcion - 1));
         mc.setRepositoryPath(Utils.updateRepoPath(f.get(opcion - 1)));
 
-
     }
 
 }
