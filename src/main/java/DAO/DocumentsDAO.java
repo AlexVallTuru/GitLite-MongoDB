@@ -244,7 +244,7 @@ public class DocumentsDAO implements InterfaceDAO {
                 }
 
                 // Escribim el document en un nou fitxer
-                try (BufferedWriter writer = Files.newBufferedWriter(filePath)) {
+                try ( BufferedWriter writer = Files.newBufferedWriter(filePath)) {
                     writer.write(documento.getString("contingut"));
                     System.out.println("Clonat fitxer " + filePath);
                 } catch (IOException e) {
@@ -341,6 +341,8 @@ public class DocumentsDAO implements InterfaceDAO {
         MongoDatabase repository = f.getDataBase();
         MongoCollection<Document> col = repository.getCollection(f.getRepositoryName());
         Path secondPath = Paths.get(inputPathfile);
+        String repoName = f.getRepositoryName();
+        Path repoPath = f.getRepositoryPath();
 
         try {
             if (f.getRepositoryPath() == null) {
@@ -360,7 +362,7 @@ public class DocumentsDAO implements InterfaceDAO {
             System.out.println("ERROR: El archivo local no existe.\n");
             return;
         }
-
+        //TODO AÑADIRLE UNA / O \ DELANTE DE LA CREACION NOMBRE DEL ARCHIVO Y DEBUGAR PARA VER SI LO PILLA DE LA BASE DE DATOS
         Document documentLocal;
         try {
             documentLocal = fileToDocument(localFile);
@@ -368,7 +370,8 @@ public class DocumentsDAO implements InterfaceDAO {
             throw new RuntimeException(e);
         }
 
-        Document query = new Document("path", getAbsolutePathDirect(resolvedPath).toString())
+        MongoCollection<Document> collection = db.getCollection(repoName);
+        Document query = new Document("path", inputPathfile)
                 .append("extensio", new Document("$in", retornarExtension()));
         Document documentoDb = col.find(query).first();
         if (detailLocalORemoto) {
@@ -376,6 +379,7 @@ public class DocumentsDAO implements InterfaceDAO {
         } else {
             System.out.print("\nComparación del archivo " + localFile.getName() + " (remoto a local).\n");
         }
+
         compareTwoFiles(documentLocal, documentoDb, containsDetails, detailLocalORemoto);
     }
 }

@@ -136,9 +136,9 @@ public class Ficheros {
             }
 
         } catch (NoSuchFileException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("ERROR:\tDocumento local no encontrado\t\n");
+            System.out.println("Documento local no encontrado\t\n");
         } catch (NullPointerException e) {
-            System.out.println("ERROR:\tDocumento remoto no encontrado a la base de datos\t\n");
+            System.out.println("Documento remoto no encontrado a la base de datos\t\n");
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
