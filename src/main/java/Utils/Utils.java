@@ -102,6 +102,12 @@ public class Utils {
 
         // Canvia els separadors de ruta per _
         ruta = ruta.replaceAll("[/\\\\]", "_");
+        
+        //Comproba si el nom termina amb _ i elimina el caracter
+        if (ruta.endsWith("_")) {
+            ruta = ruta.substring(0, ruta.length() - 1);
+        }
+
         return ruta;
     }
 
