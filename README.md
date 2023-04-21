@@ -21,7 +21,7 @@ compara los contenidos de los archivos locales con sus equivalentes remotos y mu
 clona un repositorio remoto creando un directorio local con aquellos archivos remotos con tiempo igual o inferior a un timestamp especificado.
 
 ## Video Git Lite
-[![GITLITEVIDEO](https://github.com/AlexVallTuru/HotelErp-SpringBoot/blob/master/readme_images/videoHotelErp.jpg)](https://www.youtube.com/watch?v=aNf9N9twd0U&ab_channel=%C3%80lexVallTuru)
+[![GITLITEVIDEO](https://github.com/AlexVallTuru/GitLite-MongoDB/blob/master/readme_images/FotoVideo.jpg)](https://www.youtube.com/watch?v=aNf9N9twd0U&ab_channel=%C3%80lexVallTuru)
 
 ## Memoria del proyecto
 
