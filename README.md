@@ -19,3 +19,10 @@ descarga un archivo del repositorio remoto al directorio local solo si el archiv
 compara los contenidos de los archivos locales con sus equivalentes remotos y muestra las diferencias. También puedes especificar el parámetro detail para comparar línea por línea los archivos diferentes.
 ### CLONE:
 clona un repositorio remoto creando un directorio local con aquellos archivos remotos con tiempo igual o inferior a un timestamp especificado.
+
+## Video Git Lite
+[![GITLITEVIDEO](https://github.com/AlexVallTuru/HotelErp-SpringBoot/blob/master/readme_images/videoHotelErp.jpg)](https://www.youtube.com/watch?v=aNf9N9twd0U&ab_channel=%C3%80lexVallTuru)
+
+## Memoria del proyecto
+
+[![Doc](https://img.shields.io/badge/DOC-2496ED?style=for-the-badge&logo=microsoftword&logoColor=white&labelColor=101010)](https://docs.google.com/document/d/1bUDZDz2CETTRdBgvvsMG7kdFFDxuPzInAPW-Gsu5ra4/edit?usp=sharing)
