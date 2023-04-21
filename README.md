@@ -25,4 +25,4 @@ Clona un repositorio remoto creando un directorio local con aquellos archivos re
 
 ## Memoria del proyecto
 
-[![Doc](https://img.shields.io/badge/DOC-2496ED?style=for-the-badge&logo=microsoftword&logoColor=white&labelColor=101010)](https://docs.google.com/document/d/1bUDZDz2CETTRdBgvvsMG7kdFFDxuPzInAPW-Gsu5ra4/edit?usp=sharing)
+[![Doc](https://img.shields.io/badge/DOC-2496ED?style=for-the-badge&logo=microsoftword&logoColor=white&labelColor=101010)](https://docs.google.com/document/d/1HggsF8aGZMd7gZuwcLcRW7tGLaj0SdrYJBwfQyjJZms/edit?usp=sharing)
